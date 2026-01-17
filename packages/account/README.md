@@ -6,8 +6,24 @@ Part of the [seaverse-node](https://github.com/SeaVerseAI/seaverse-node) SDK fam
 
 ## Installation
 
+Install directly from GitHub:
+
 ```bash
-npm install @seaverse/account
+# Install from latest main branch
+npm install github:SeaVerseAI/seaverse-node#main
+
+# Or install from specific tag
+npm install github:SeaVerseAI/seaverse-node#account/v0.1.0
+```
+
+Or add to your `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@seaverse/account": "github:SeaVerseAI/seaverse-node#account/v0.1.0"
+  }
+}
 ```
 
 ## Quick Start

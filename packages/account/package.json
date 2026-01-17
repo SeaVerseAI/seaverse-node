@@ -24,9 +24,11 @@
     }
   },
   "files": [
+    "src",
     "dist",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "tsconfig.json"
   ],
   "keywords": [
     "seaverse",
@@ -39,6 +41,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "test": "echo \"No tests yet\""
   },
