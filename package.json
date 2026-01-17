@@ -1,0 +1,57 @@
+{
+  "name": "@seaverse/account",
+  "version": "0.1.0",
+  "description": "SeaVerse Account Hub APIs for authentication and user management",
+  "license": "Apache-2.0",
+  "author": "SeaVerse AI",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SeaVerseAI/seaverse-node.git",
+    "directory": "packages/account"
+  },
+  "homepage": "https://github.com/SeaVerseAI/seaverse-node/tree/main/packages/account",
+  "main": "./packages/account/dist/index.js",
+  "module": "./packages/account/dist/index.js",
+  "types": "./packages/account/dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./packages/account/dist/index.js",
+      "types": "./packages/account/dist/index.d.ts"
+    }
+  },
+  "files": [
+    "packages/account/src",
+    "packages/account/dist",
+    "packages/account/tsconfig.json",
+    "packages/account/package.json",
+    "packages/account/README.md",
+    "tsconfig.base.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "seaverse",
+    "account",
+    "api-client",
+    "typescript",
+    "openapi",
+    "authentication"
+  ],
+  "scripts": {
+    "build": "cd packages/account && npm run build",
+    "prepare": "cd packages/account && npm install && npm run build",
+    "clean": "cd packages/account && npm run clean",
+    "test": "cd packages/account && npm test"
+  },
+  "dependencies": {
+    "@hey-api/client-fetch": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  }
+}
