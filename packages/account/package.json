@@ -4,7 +4,6 @@
   "description": "SeaVerse Account Hub APIs for authentication and user management",
   "license": "Apache-2.0",
   "author": "SeaVerse AI",
-  "type": "module",
   "engines": {
     "node": ">=18"
   },
