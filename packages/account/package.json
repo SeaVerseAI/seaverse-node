@@ -14,11 +14,10 @@
   },
   "homepage": "https://github.com/SeaVerseAI/seaverse-node/tree/main/packages/account",
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
+      "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   },

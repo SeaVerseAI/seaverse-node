@@ -18,7 +18,7 @@
   "types": "./packages/account/dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./packages/account/dist/index.js",
+      "require": "./packages/account/dist/index.js",
       "types": "./packages/account/dist/index.d.ts"
     }
   },
