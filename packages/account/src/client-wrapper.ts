@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { client } from './client.gen';
+import { client } from './client.gen.js';
 
 /**
  * Default base URL for account API
@@ -68,5 +68,5 @@ export function createClient(config?: ClientConfig) {
 
 // Re-export for convenience
 export { client };
-export * from './types.gen';
-export * from './sdk.gen';
+export * from './types.gen.js';
+export * from './sdk.gen.js';

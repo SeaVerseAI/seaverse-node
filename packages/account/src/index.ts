@@ -6,7 +6,7 @@
  * @packageDocumentation
  */
 
-export { createClient, client, DEFAULT_BASE_URL } from './client-wrapper';
-export type { ClientConfig } from './client-wrapper';
-export * from './types.gen';
-export * from './sdk.gen';
+export { createClient, client, DEFAULT_BASE_URL } from './client-wrapper.js';
+export type { ClientConfig } from './client-wrapper.js';
+export * from './types.gen.js';
+export * from './sdk.gen.js';
