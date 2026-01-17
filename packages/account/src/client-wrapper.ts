@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { client as baseClient } from './client';
+import { client } from './client.gen';
 
 /**
  * Default base URL for account API
@@ -56,17 +56,17 @@ export interface ClientConfig {
  * });
  */
 export function createClient(config?: ClientConfig) {
-  baseClient.setConfig({
+  client.setConfig({
     baseUrl: config?.baseUrl || DEFAULT_BASE_URL,
     headers: {
       'User-Agent': 'seaverse-account-node/1.0.0',
       ...config?.headers,
     },
   });
-  return baseClient;
+  return client;
 }
 
-// Export the base client for advanced usage
-export { baseClient as client };
+// Re-export for convenience
+export { client };
 export * from './types.gen';
-export * from './services.gen';
+export * from './sdk.gen';
