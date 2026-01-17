@@ -1,0 +1,52 @@
+{
+  "name": "@seaverse/account",
+  "version": "0.1.0",
+  "description": "SeaVerse Account Hub APIs for authentication and user management",
+  "license": "Apache-2.0",
+  "author": "SeaVerse AI",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SeaVerseAI/seaverse-node.git",
+    "directory": "packages/account"
+  },
+  "homepage": "https://github.com/SeaVerseAI/seaverse-node/tree/main/packages/account",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "seaverse",
+    "account",
+    "api-client",
+    "typescript",
+    "openapi",
+    "authentication"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@hey-api/client-fetch": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  }
+}
