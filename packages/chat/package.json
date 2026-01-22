@@ -1,0 +1,68 @@
+{
+  "name": "@sealink/chat",
+  "version": "0.1.0",
+  "description": "SeaLink Chat SDK for Node.js - Real-time chat and communication",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "echo \"Tests not yet implemented\"",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "sealink",
+    "chat",
+    "websocket",
+    "real-time",
+    "sdk"
+  ],
+  "author": "SeaVerse",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SeaVerseAI/seaverse-node.git",
+    "directory": "packages/chat"
+  },
+  "bugs": {
+    "url": "https://github.com/SeaVerseAI/seaverse-node/issues"
+  },
+  "homepage": "https://github.com/SeaVerseAI/seaverse-node/tree/main/packages/chat#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "react": "^18.2.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  }
+}
