@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SeaLink SDK 测试平台</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #667eea;
+      font-size: 18px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: monospace;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .output {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 15px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .status {
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .status.warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .messages {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+
+    .message {
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border-left: 3px solid;
+    }
+
+    .message.user {
+      background: #e3f2fd;
+      border-left-color: #2196f3;
+    }
+
+    .message.assistant {
+      background: #f3e5f5;
+      border-left-color: #9c27b0;
+    }
+
+    .message.streaming {
+      background: #fff9e6;
+      border-left-color: #ffc107;
+    }
+
+    .message-role {
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      opacity: 0.7;
+    }
+
+    .message-content {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #667eea;
+      color: white;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 8px;
+    }
+
+    .config-section {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+
+    code {
+      background: #2d3748;
+      color: #68d391;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌊 SeaLink SDK 测试平台</h1>
+      <p class="subtitle">
+        <span class="badge">Core Transport</span>
+        <span class="badge">Data PostgREST</span>
+        <span class="badge">Runtime Conversations</span>
+        <span class="badge">Chat WebSocket</span>
+      </p>
+    </header>
+
+    <div class="grid">
+      <!-- 1. Core Transport 测试 -->
+      <div class="card">
+        <h2>📡 Core Transport</h2>
+        <div class="config-section">
+          <div class="form-group">
+            <label>Base URL</label>
+            <input type="text" id="transport-base-url" value="https://postgrest.sg.seaverse.dev" placeholder="https://postgrest.sg.seaverse.dev">
+          </div>
+          <div class="form-group">
+            <label>Auth Token</label>
+            <input type="text" id="transport-token" value="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaG4iOiJzZWF2ZXJzZSIsInNjcCI6WyJsb2dpbiIsImFwaSIsImFjY291bnQiXSwicGF5bG9hZCI6eyJ1c2VyX2lkIjoiMUNXdEV3TG1rTDcza2dNWEt6WEJkSiIsInVzZXJuYW1lIjoiZGF0b3UiLCJlbWFpbCI6ImRhdG91QGhhaXlpLmFydCJ9LCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJzdWIiOiIxQ1d0RXdMbWtMNzNrZ01YS3pYQmRKIiwiZXhwIjoxNzk5NTcyNDIzLCJuYmYiOjE3NjgwMzY0MjMsImlhdCI6MTc2ODAzNjQyMywianRpIjoiNzkxNDc2NDYtMWY2NS00Y2IxLWJkNmMtN2FjZTU0MjNjOTQxIn0.kXQ7X2M8EC6Ikvzpu_boZsLeNxNGROBGVQZX5qnwTQg" placeholder="your-auth-token">
+          </div>
+        </div>
+        <button id="test-transport">测试 HTTP 客户端</button>
+        <div id="transport-output" class="output"></div>
+      </div>
+
+      <!-- 2. PostgREST 客户端测试 -->
+      <div class="card">
+        <h2>🗄️ Data PostgREST</h2>
+        <div class="config-section">
+          <div class="form-group">
+            <label>Table Name</label>
+            <input type="text" id="postgrest-table" value="conversations" placeholder="conversations">
+          </div>
+          <div class="form-group">
+            <label>Filter (PostgREST format)</label>
+            <input type="text" id="postgrest-filter" value="user_id=eq.1CWtEwLmkL73kgMXKzXBdJ" placeholder="user_id=eq.123">
+          </div>
+          <div class="form-group">
+            <label>Order</label>
+            <input type="text" id="postgrest-order" value="created_at.desc" placeholder="created_at.desc">
+          </div>
+          <div class="form-group">
+            <label>Limit</label>
+            <input type="number" id="postgrest-limit" value="10" min="1" max="100">
+          </div>
+        </div>
+        <button id="test-postgrest">查询数据</button>
+        <div id="postgrest-output" class="output"></div>
+      </div>
+
+      <!-- 3. Runtime Conversations 测试 -->
+      <div class="card full-width">
+        <h2>💬 Runtime Conversations</h2>
+        <div class="config-section">
+          <div class="form-group">
+            <label>Environment</label>
+            <select id="conv-environment">
+              <option value="dev" selected>dev</option>
+              <option value="prod">prod</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Access Token（默认复用 Core Transport 的 Auth Token）</label>
+            <input type="text" id="conv-access-token" value="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaG4iOiJzZWF2ZXJzZSIsInNjcCI6WyJsb2dpbiIsImFwaSIsImFjY291bnQiXSwicGF5bG9hZCI6eyJ1c2VyX2lkIjoiMUNXdEV3TG1rTDcza2dNWEt6WEJkSiIsInVzZXJuYW1lIjoiZGF0b3UiLCJlbWFpbCI6ImRhdG91QGhhaXlpLmFydCJ9LCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJzdWIiOiIxQ1d0RXdMbWtMNzNrZ01YS3pYQmRKIiwiZXhwIjoxNzk5NTcyNDIzLCJuYmYiOjE3NjgwMzY0MjMsImlhdCI6MTc2ODAzNjQyMywianRpIjoiNzkxNDc2NDYtMWY2NS00Y2IxLWJkNmMtN2FjZTU0MjNjOTQxIn0.kXQ7X2M8EC6Ikvzpu_boZsLeNxNGROBGVQZX5qnwTQg" placeholder="user-token（可选）">
+          </div>
+          <div class="form-group">
+            <label>App ID（可选，用于聚合/过滤）</label>
+            <input type="text" id="conv-app-id" value="app-1769501930216-489ca672" placeholder="app-id（可选）">
+          </div>
+          <div class="form-group">
+            <label>User ID</label>
+            <input type="text" id="conv-user-id" value="1CWtEwLmkL73kgMXKzXBdJ" placeholder="test-user-123">
+          </div>
+          <div class="form-group">
+            <label>Page（分页，从 1 开始）</label>
+            <input type="number" id="conv-page" value="1" min="1" step="1">
+          </div>
+          <div class="form-group">
+            <label>Page Size（每页数量）</label>
+            <input type="number" id="conv-page-size" value="1" min="1" max="100" step="1">
+          </div>
+          <div class="form-group">
+            <label>操作类型</label>
+            <select id="conv-operation">
+              <option value="list">获取会话列表</option>
+              <option value="list-apps">获取应用和会话聚合数据</option>
+              <option value="messages">获取消息列表</option>
+            </select>
+          </div>
+          <div class="form-group" id="conv-id-group" style="display:none;">
+            <label>Conversation ID (用于获取消息)</label>
+            <input type="text" id="conv-conversation-id" value="081aba68-02aa-4a5e-bdd1-7db2ad112c63" placeholder="conversation-id">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button id="test-conversations">执行操作</button>
+          <button id="test-url-session-token">获取 URL Session Token</button>
+        </div>
+        <div id="conversations-output" class="output"></div>
+      </div>
+
+      <!-- 4. Chat WebSocket 测试 -->
+      <div class="card full-width">
+        <h2>🚀 Chat WebSocket</h2>
+        <div class="config-section">
+          <div class="form-group">
+            <label>API URL（必填，通常与服务同域）</label>
+            <input type="text" id="chat-api-url" value="https://sandbox.sg.seaverse.ai/" placeholder="https://sandbox.sg.seaverse.ai/">
+          </div>
+          <div class="form-group">
+            <label>Base URL</label>
+            <input type="text" id="chat-base-url" value="https://sandbox.sg.seaverse.ai/" placeholder="https://sandbox.sg.seaverse.ai/">
+          </div>
+          <div class="form-group">
+            <label>Token</label>
+            <input type="text" id="chat-token" placeholder="your-websocket-token">
+          </div>
+          <div class="form-group">
+            <label>Conversation ID</label>
+            <input type="text" id="chat-conversation-id" placeholder="conversation-id">
+          </div>
+          <div class="form-group">
+            <label>App ID</label>
+            <input type="text" id="chat-app-id" placeholder="app-id">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button id="chat-connect">连接 WebSocket</button>
+          <button id="chat-disconnect" disabled>断开连接</button>
+        </div>
+        <div id="chat-status"></div>
+
+        <div style="margin-top: 20px;">
+          <div class="form-group">
+            <label>发送消息</label>
+            <textarea id="chat-message" placeholder="输入消息内容..." rows="3"></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button id="chat-send" disabled>发送消息</button>
+            <button id="chat-interrupt" disabled>中断执行</button>
+          </div>
+        </div>
+
+        <div class="messages" id="chat-messages">
+          <!-- 消息将在这里显示 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "@sealink/runtime": "./packages/runtime/dist/index.js",
+        "@sealink/chat": "./packages/chat/dist/index.mjs"
+      }
+    }
+  </script>
+
+  <script type="module">
+    // ============================================
+    // 真实 SDK 测试页面（本地 dist + importmap）
+    // ============================================
+
+    import { createHttpClient, DbClient, createClient } from '@sealink/runtime';
+    import { createChat } from '@sealink/chat';
+
+    // 辅助函数
+    function log(elementId, message, type = 'info') {
+      const output = document.getElementById(elementId);
+      const timestamp = new Date().toLocaleTimeString();
+      const typeEmoji = {
+        info: '📘',
+        success: '✅',
+        error: '❌',
+        warning: '⚠️'
+      };
+      const line = `[${timestamp}] ${typeEmoji[type]} ${message}`;
+      output.textContent = `${line}\n\n${output.textContent}`;
+
+      // 同步输出到控制台，便于自动化测试/排查（不包含敏感信息）。
+      const consoleFn =
+        type === 'error' ? console.error :
+        type === 'warning' ? console.warn :
+        type === 'success' ? console.info :
+        console.log;
+      consoleFn(`[${elementId}] ${line}`);
+    }
+
+    function showStatus(elementId, message, type = 'info') {
+      const container = document.getElementById(elementId);
+      const statusDiv = document.createElement('div');
+      statusDiv.className = `status ${type}`;
+      statusDiv.textContent = message;
+      container.textContent = '';
+      container.appendChild(statusDiv);
+    }
+
+    function createMessageElement(role, content, isStreaming = false) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = isStreaming ? 'message streaming' : `message ${role}`;
+
+      const roleDiv = document.createElement('div');
+      roleDiv.className = 'message-role';
+      roleDiv.textContent = isStreaming ? 'Assistant (Streaming...)' : role.charAt(0).toUpperCase() + role.slice(1);
+
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      contentDiv.textContent = content;
+
+      msgDiv.appendChild(roleDiv);
+      msgDiv.appendChild(contentDiv);
+
+      return msgDiv;
+    }
+
+    function safeStringify(value) {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return String(value);
+      }
+    }
+
+    /**
+     * 解析 PostgREST filter 输入
+     * - 支持 "a=eq.1&b=like.%25foo%25"
+     * - 支持单条 "a=eq.1"
+     */
+    function parsePostgrestFilter(filterText) {
+      const text = (filterText || '').trim();
+      if (!text) return undefined;
+
+      const filter = {};
+      const pairs = text.split('&').map(s => s.trim()).filter(Boolean);
+      for (const pair of pairs) {
+        const idx = pair.indexOf('=');
+        if (idx <= 0) continue;
+        const key = decodeURIComponent(pair.slice(0, idx));
+        const value = decodeURIComponent(pair.slice(idx + 1));
+        if (!key) continue;
+        filter[key] = value;
+      }
+      return Object.keys(filter).length ? filter : undefined;
+    }
+
+    /**
+     * 同源代理 fetch：把跨域请求转发到本地 `/_proxy?url=...`
+     *
+     * 目的：解决浏览器直接请求 seaverse 域名的 CORS 限制
+     *
+     * 注意：
+     * - 仅用于本地测试（依赖 dev-server.mjs）
+     * - 不会修改请求头，Authorization 会随请求透传到 proxy
+     */
+    async function proxyFetch(input, init) {
+      const url = typeof input === 'string' ? input : (input && input.url ? input.url : String(input));
+      // 同源请求直接走原生 fetch
+      if (url.startsWith('/') || url.startsWith(window.location.origin)) {
+        return fetch(input, init);
+      }
+      // 仅代理 http/https
+      if (!/^https?:\/\//i.test(url)) {
+        return fetch(input, init);
+      }
+      const proxied = `/_proxy?url=${encodeURIComponent(url)}`;
+      return fetch(proxied, init);
+    }
+
+    /**
+     * 兼容输入 "Bearer xxx" 或 "xxx" 两种形式
+     */
+    function normalizeAccessToken(raw) {
+      const text = String(raw || '').trim();
+      if (!text) return '';
+      return text.replace(/^Bearer\s+/i, '').trim();
+    }
+
+    function getTransportInputs() {
+      const baseUrl = document.getElementById('transport-base-url').value.trim();
+      const token = normalizeAccessToken(document.getElementById('transport-token').value);
+      if (!baseUrl) {
+        throw new Error('请先填写 Core Transport 的 Base URL');
+      }
+      return { baseUrl, token };
+    }
+
+    function createClients() {
+      const { baseUrl, token } = getTransportInputs();
+
+      const http = createHttpClient({
+        baseUrl,
+        fetch: proxyFetch,
+        // 注意：SDK 设计为显式注入 token，这里仅从输入框读取
+        getAuthToken: async () => (token ? token : null),
+      });
+
+      const db = new DbClient(http);
+
+      return { http, db };
+    }
+
+    // ============================================
+    // 1. Core Transport 测试
+    // ============================================
+    document.getElementById('test-transport').addEventListener('click', async () => {
+      try {
+        const { baseUrl, token } = getTransportInputs();
+        log('transport-output', '正在创建 HTTP 客户端...', 'info');
+
+        const { http } = createClients();
+        log(
+          'transport-output',
+          `HTTP 客户端已创建\nBase URL: ${baseUrl}\nToken: ${token ? '***已设置***' : '未设置'}`,
+          'success'
+        );
+
+        log('transport-output', '发送 GET 请求到 /apps?limit=1 ...', 'info');
+        const response = await http.get('/apps?limit=1');
+
+        log(
+          'transport-output',
+          `响应状态: ${response.status} ${response.statusText}\n\n数据预览:\n${safeStringify(response.data).slice(0, 2000)}`,
+          'success'
+        );
+
+      } catch (error) {
+        log('transport-output', `错误: ${error.message}`, 'error');
+      }
+    });
+
+    // ============================================
+    // 2. PostgREST 客户端测试
+    // ============================================
+    document.getElementById('test-postgrest').addEventListener('click', async () => {
+      const table = document.getElementById('postgrest-table').value;
+      const filter = document.getElementById('postgrest-filter').value;
+      const order = document.getElementById('postgrest-order').value;
+      const limit = document.getElementById('postgrest-limit').value;
+
+      try {
+        if (!table) throw new Error('请填写 Table Name');
+        log('postgrest-output', '正在创建 DbClient...', 'info');
+
+        const { db } = createClients();
+        const parsedFilter = parsePostgrestFilter(filter);
+
+        const options = {
+          ...(parsedFilter ? { filter: parsedFilter } : {}),
+          ...(order ? { order: order.trim() } : {}),
+          ...(limit ? { limit: Number(limit) } : {}),
+        };
+
+        log(
+          'postgrest-output',
+          `查询参数:\n${safeStringify(options)}`,
+          'info'
+        );
+
+        const result = await db.get(table.trim(), options);
+        const rows = result.data;
+        log(
+          'postgrest-output',
+          `✅ 查询成功: rows=${rows.length}\ncount=${result.count ?? 'null'}\n\n数据预览:\n${safeStringify(rows).slice(0, 2000)}`,
+          'success'
+        );
+
+      } catch (error) {
+        log('postgrest-output', `错误: ${error.message}`, 'error');
+      }
+    });
+
+    // ============================================
+    // 3. Runtime Conversations 测试
+    // ============================================
+    const convOperationSelect = document.getElementById('conv-operation');
+    const convIdGroup = document.getElementById('conv-id-group');
+
+    convOperationSelect.addEventListener('change', (e) => {
+      convIdGroup.style.display = e.target.value === 'messages' ? 'block' : 'none';
+    });
+
+    document.getElementById('test-conversations').addEventListener('click', async () => {
+      const userId = document.getElementById('conv-user-id').value;
+      const operation = document.getElementById('conv-operation').value;
+      const conversationId = document.getElementById('conv-conversation-id').value;
+      const environment = document.getElementById('conv-environment').value;
+      const accessTokenOverride = normalizeAccessToken(document.getElementById('conv-access-token').value);
+      const appId = document.getElementById('conv-app-id').value.trim();
+      const page = Math.max(1, Number(document.getElementById('conv-page').value || 1));
+      const pageSize = Math.max(1, Number(document.getElementById('conv-page-size').value || 20));
+
+      try {
+        const { token: transportToken } = getTransportInputs();
+        const accessToken = accessTokenOverride || transportToken;
+        if (!accessToken) throw new Error('请填写 Access Token（或在 Core Transport 填写 Auth Token）');
+
+        const runtime = createClient({
+          environment,
+          token: accessToken,
+          fetch: proxyFetch,
+        });
+
+        if (operation === 'list') {
+          const result = await runtime.conversations.list({
+            userId: userId?.trim() || undefined,
+            appId: appId || undefined,
+            orderBy: 'createdAt',
+            order: 'desc',
+            page,
+            pageSize,
+          });
+          log(
+            'conversations-output',
+            `✅ 会话列表获取成功: count=${result.data.length}\n` +
+            `pagination:\n${safeStringify(result.pagination)}\n\n` +
+            `${safeStringify(result.data).slice(0, 2000)}`,
+            'success'
+          );
+          return;
+        }
+
+        if (operation === 'list-apps') {
+          const result = await runtime.conversations.listAppsWithConversations({
+            appId: appId || undefined,
+            userId: userId?.trim() || undefined,
+          });
+          log(
+            'conversations-output',
+            `✅ 聚合数据获取成功\nurlSessionToken: ${result.urlSessionToken}\napps: ${result.apps?.length ?? 0}\n\n${safeStringify(result).slice(0, 2000)}`,
+            'success'
+          );
+          return;
+        }
+
+        if (operation === 'messages') {
+          if (!conversationId) {
+            log('conversations-output', '请输入 Conversation ID', 'error');
+            return;
+          }
+          const result = await runtime.messages.list(conversationId.trim(), {
+            order: 'asc',
+            page,
+            pageSize,
+          });
+          log(
+            'conversations-output',
+            `✅ 消息列表获取成功: count=${result.data.length}\n` +
+            `pagination:\n${safeStringify(result.pagination)}\n\n` +
+            `${safeStringify(result.data).slice(0, 2000)}`,
+            'success'
+          );
+          return;
+        }
+
+        log('conversations-output', `未知操作: ${operation}`, 'warning');
+
+      } catch (error) {
+        log('conversations-output', `错误: ${error.message}`, 'error');
+      }
+    });
+
+    // 仅测试 auth：获取 url_session_token（不依赖 PostgREST 路由是否可用）
+    document.getElementById('test-url-session-token').addEventListener('click', async () => {
+      const environment = document.getElementById('conv-environment').value;
+      const accessTokenOverride = normalizeAccessToken(document.getElementById('conv-access-token').value);
+
+      try {
+        const { token: transportToken } = getTransportInputs();
+        const accessToken = accessTokenOverride || transportToken;
+        if (!accessToken) throw new Error('请填写 Access Token（或在 Core Transport 填写 Auth Token）');
+
+        const runtime = createClient({
+          environment,
+          token: accessToken,
+          fetch: proxyFetch,
+        });
+
+        log('conversations-output', '正在获取 URL Session Token...', 'info');
+        const token = await runtime.getUrlSessionToken();
+        log(
+          'conversations-output',
+          `✅ 获取成功\nurlSessionToken: ${token}`,
+          'success'
+        );
+      } catch (error) {
+        log('conversations-output', `错误: ${error.message}`, 'error');
+      }
+    });
+
+    // ============================================
+    // 4. Chat WebSocket 测试
+    // ============================================
+    let chatClient = null;
+    let chatUnsubscribe = null;
+    let streamingElement = null;
+
+    document.getElementById('chat-connect').addEventListener('click', async () => {
+      const apiURL = document.getElementById('chat-api-url').value.trim();
+      const baseURL = document.getElementById('chat-base-url').value;
+      const token = document.getElementById('chat-token').value;
+      const conversationId = document.getElementById('chat-conversation-id').value;
+      const appId = document.getElementById('chat-app-id').value;
+
+      if (!apiURL || !token || !conversationId || !appId) {
+        showStatus('chat-status', '请填写所有必填字段', 'error');
+        return;
+      }
+
+      try {
+        showStatus('chat-status', '正在连接 WebSocket...', 'info');
+
+        // 清理上一次订阅（如果有）
+        if (chatUnsubscribe) {
+          try { chatUnsubscribe(); } catch {}
+          chatUnsubscribe = null;
+        }
+        streamingElement = null;
+
+        chatClient = createChat({
+          apiURL,
+          baseURL: baseURL?.trim() || undefined,
+          token: token.trim(),
+          conversationId: conversationId.trim(),
+          appId: appId.trim(),
+        });
+
+        await chatClient.connect();
+
+        const messagesContainer = document.getElementById('chat-messages');
+        chatUnsubscribe = chatClient.onMessage(
+          (msg) => {
+            // 收到完整消息（流式结束后会触发）
+            const el = createMessageElement(msg.role, msg.content);
+            messagesContainer.insertBefore(el, messagesContainer.firstChild);
+            messagesContainer.scrollTop = 0;
+          },
+          {
+            onChunk: (chunk) => {
+              // 流式增量内容（用于打字机效果）
+              if (!streamingElement) {
+                streamingElement = createMessageElement('assistant', '', true);
+                messagesContainer.insertBefore(streamingElement, messagesContainer.firstChild);
+              }
+              const contentDiv = streamingElement.querySelector('.message-content');
+              contentDiv.textContent += chunk;
+            },
+            onComplete: () => {
+              if (streamingElement) {
+                streamingElement.className = 'message assistant';
+                const roleDiv = streamingElement.querySelector('.message-role');
+                roleDiv.textContent = 'Assistant';
+                streamingElement = null;
+              }
+            },
+            onError: (error) => {
+              showStatus('chat-status', `❌ 流式错误: ${error.message}`, 'error');
+              if (streamingElement) {
+                const contentDiv = streamingElement.querySelector('.message-content');
+                contentDiv.textContent = `Stream error: ${error.message}`;
+                streamingElement.className = 'message assistant';
+                streamingElement = null;
+              }
+            },
+            onSystem: (systemInfo) => {
+              const sys = createMessageElement('info', `System: ${safeStringify(systemInfo)}`);
+              messagesContainer.insertBefore(sys, messagesContainer.firstChild);
+            }
+          }
+        );
+
+        showStatus('chat-status', '✅ WebSocket 已连接', 'success');
+        document.getElementById('chat-connect').disabled = true;
+        document.getElementById('chat-disconnect').disabled = false;
+        document.getElementById('chat-send').disabled = false;
+        document.getElementById('chat-interrupt').disabled = false;
+
+      } catch (error) {
+        showStatus('chat-status', `❌ 连接失败: ${error.message}`, 'error');
+        chatClient = null;
+      }
+    });
+
+    document.getElementById('chat-disconnect').addEventListener('click', async () => {
+      try {
+        showStatus('chat-status', '正在断开连接...', 'info');
+
+        if (chatUnsubscribe) {
+          try { chatUnsubscribe(); } catch {}
+          chatUnsubscribe = null;
+        }
+        if (chatClient) {
+          await chatClient.disconnect();
+        }
+
+        showStatus('chat-status', '✅ 已断开连接', 'success');
+        document.getElementById('chat-connect').disabled = false;
+        document.getElementById('chat-disconnect').disabled = true;
+        document.getElementById('chat-send').disabled = true;
+        document.getElementById('chat-interrupt').disabled = true;
+
+        chatClient = null;
+        streamingElement = null;
+
+      } catch (error) {
+        showStatus('chat-status', `❌ 断开失败: ${error.message}`, 'error');
+      }
+    });
+
+    document.getElementById('chat-send').addEventListener('click', async () => {
+      const content = document.getElementById('chat-message').value.trim();
+
+      if (!content) {
+        showStatus('chat-status', '请输入消息内容', 'warning');
+        return;
+      }
+
+      if (!chatClient || !chatClient.isConnected) {
+        showStatus('chat-status', '请先连接 WebSocket', 'error');
+        return;
+      }
+
+      try {
+        // 显示用户消息
+        const messagesContainer = document.getElementById('chat-messages');
+        const userMsgDiv = createMessageElement('user', content);
+        messagesContainer.insertBefore(userMsgDiv, messagesContainer.firstChild);
+
+        await chatClient.sendMessage(content);
+
+        showStatus('chat-status', '✅ 消息已发送', 'success');
+        document.getElementById('chat-message').value = '';
+
+      } catch (error) {
+        showStatus('chat-status', `❌ 发送失败: ${error.message}`, 'error');
+      }
+    });
+
+    document.getElementById('chat-interrupt').addEventListener('click', async () => {
+      try {
+        if (!chatClient) throw new Error('未连接');
+        await chatClient.interrupt();
+        showStatus('chat-status', '✅ 已中断执行', 'success');
+      } catch (error) {
+        showStatus('chat-status', `❌ 中断失败: ${error.message}`, 'error');
+      }
+    });
+
+    // 页面加载完成
+    console.log('SeaLink SDK 测试平台已加载');
+    console.log('已启用 importmap，本页面会从本地 dist 导入真实 SDK');
+  </script>
+</body>
+</html>

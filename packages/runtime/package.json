@@ -1,0 +1,41 @@
+{
+  "name": "@sealink/runtime",
+  "version": "0.2.0",
+  "description": "SeaLink Runtime SDK - Unified SDK for conversations, messages, apps, and data access with PostgREST and HTTP transport",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "sealink",
+    "runtime",
+    "sdk",
+    "conversations",
+    "messages",
+    "apps",
+    "postgrest",
+    "http",
+    "transport"
+  ],
+  "author": "SeaVerse",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

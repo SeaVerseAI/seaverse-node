@@ -76,7 +76,9 @@ export const createClient = (config: Config = {}): Client => {
   };
 
   const request: Client['request'] = async (options) => {
-    // @ts-expect-error
+    // @ts-ignore
+    // Auto-generated code: keep permissive typing here to avoid breaking builds
+    // when upstream generator changes the inferred type of `beforeRequest`.
     const { opts, url } = await beforeRequest(options);
     const requestInit: ReqInit = {
       redirect: 'follow',
