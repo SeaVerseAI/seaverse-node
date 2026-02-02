@@ -1,6 +1,6 @@
 # @sealink/runtime
 
-SeaLink Runtime SDK - 用于对话（Conversations）和消息（Messages）管理的统一 SDK。
+SeaLink Runtime SDK - 用于 App、对话（Conversations）和消息（Messages）管理的函数式 SDK。
 
 ## 安装
 
@@ -12,194 +12,193 @@ pnpm add @sealink/runtime
 
 ## 快速开始
 
-### 创建客户端
+### 初始化 SDK
 
 ```typescript
-import { createClient } from '@sealink/runtime';
+import { initRuntimeSdk } from '@sealink/runtime';
 
-const client = createClient({
+const runtime = initRuntimeSdk({
   environment: 'prod', // 'dev' | 'prod'
   token: 'your-access-token'
 });
 ```
 
-### 管理对话（Conversations）
+### 获取 Apps 及其会话列表
 
 ```typescript
-// 获取对话列表
-const conversations = await client.conversations.list({
-  page: 1,
-  pageSize: 10
-});
-
-console.log(conversations.data); // Conversation[]
-console.log(conversations.meta); // { total, page, pageSize, totalPages }
-
-// 创建新对话
-const newConversation = await client.conversations.create({
-  appId: 'app-123',
-  title: '我的对话'
-});
-
-// 获取单个对话
-const conversation = await client.conversations.get('conversation-id');
-
-// 更新对话
-const updated = await client.conversations.update('conversation-id', {
-  title: '新标题'
-});
-
-// 删除对话
-await client.conversations.delete('conversation-id');
-```
-
-### 获取消息（Messages）
-
-```typescript
-// 获取对话的消息列表（默认倒序，最新的在前）
-const messages = await client.messages.list('conversation-id', {
+// 获取所有 apps,每个 app 返回消息数最多的一个会话
+const result = await runtime.getAppsWithConversationsList({
   page: 1,
   pageSize: 20
 });
 
-console.log(messages.data); // Message[]（按时间倒序）
-console.log(messages.pagination); // { total, page, pageSize, totalPages }
+console.log(result.apps);     // AppWithConversations[]
+console.log(result.hasMore);  // boolean - 是否有下一页
+
+// 获取指定 app
+const appResult = await runtime.getAppsWithConversationsList({
+  appId: 'app-123',
+  page: 1,
+  pageSize: 20
+});
+```
+
+### 获取消息列表
+
+```typescript
+// 获取指定会话的消息列表（倒序,最新的在前）
+const result = await runtime.getMessagesList('conversation-id', {
+  page: 1,
+  pageSize: 50
+});
+
+console.log(result.messages);  // Message[]
+console.log(result.hasMore);   // boolean - 是否有下一页
 ```
 
 ## API 参考
 
-### createClient(config)
+### initRuntimeSdk(config)
 
-创建 Runtime 客户端实例。
-
-**参数**:
-- `config.environment`: `'dev' | 'prod'` - 环境配置
-- `config.token`: `string` - 访问令牌
-- `config.getToken?`: `() => Promise<string>` - 动态获取令牌（可选）
-- `config.fetch?`: `typeof fetch` - 自定义 fetch 实现（可选）
-- `config.timeout?`: `number` - 请求超时时间，默认 30000ms（可选）
-
-**返回**: `RuntimeClient`
-
-### client.conversations
-
-对话资源管理。
-
-#### list(options?)
-
-获取对话列表。
+初始化 Runtime SDK 并返回函数式 API。
 
 **参数**:
 ```typescript
 {
-  appId?: string;           // 按应用 ID 过滤
-  page?: number;            // 页码，默认 1
-  pageSize?: number;        // 每页数量，默认 10
+  environment: 'dev' | 'prod';        // 环境配置
+  token: string;                      // 访问令牌
+  getToken?: () => Promise<string>;   // 动态获取令牌（可选）
+  fetch?: typeof fetch;               // 自定义 fetch 实现（可选）
+  timeout?: number;                   // 请求超时时间，默认 30000ms（可选）
 }
 ```
 
-**返回**: `Promise<PaginatedResult<Conversation>>`
+**返回**: 包含以下方法的对象
 
-#### create(data)
+### getAppsWithConversationsList(options?)
 
-创建新对话。
+获取 Apps 列表,每个 app 只返回消息数最多的那一个会话。
 
 **参数**:
 ```typescript
 {
-  appId: string;           // 应用 ID
-  title?: string;          // 对话标题
+  appId?: string;      // 可选,按应用 ID 过滤
+  page?: number;       // 页码,默认 1
+  pageSize?: number;   // 每页数量,默认 20
 }
 ```
 
-**返回**: `Promise<Conversation>`
-
-#### get(id)
-
-获取单个对话。
-
-**返回**: `Promise<Conversation | null>`
-
-#### update(id, data)
-
-更新对话。
-
-**参数**:
+**返回**:
 ```typescript
-{
-  title?: string;          // 对话标题
-}
+Promise<{
+  apps: AppWithConversations[];
+  hasMore: boolean;  // 是否有下一页
+}>
 ```
 
-**返回**: `Promise<Conversation>`
+### getMessagesList(conversationId, options?)
 
-#### delete(id)
-
-删除对话。
-
-**返回**: `Promise<void>`
-
-### client.messages
-
-消息资源查询（只读）。
-
-#### list(conversationId, options?)
-
-获取指定对话的消息列表（按时间倒序，最新消息在前）。
+获取指定会话的消息列表（按时间倒序,最新消息在前）。
 
 **参数**:
-- `conversationId`: `string` - 对话 ID（必需）
+- `conversationId`: `string` - 会话 ID（必需）
 - `options?`: 可选查询选项
   ```typescript
   {
-    page?: number;           // 页码，默认 1
-    pageSize?: number;       // 每页数量，默认 100
+    page?: number;       // 页码,默认 1
+    pageSize?: number;   // 每页数量,默认 100
   }
   ```
 
-**返回**: `Promise<PaginatedResult<Message>>`
+**返回**:
+```typescript
+Promise<{
+  messages: Message[];
+  hasMore: boolean;  // 是否有下一页
+}>
+```
 
 ## 类型定义
-
-### Conversation
-
-```typescript
-interface Conversation {
-  id: string;
-  appId: string;
-  userId: string;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-}
-```
 
 ### Message
 
 ```typescript
 interface Message {
   id: string;
-  conversationId: string;
-  content: string;
-  role: 'user' | 'assistant' | 'system';
-  createdAt: string;
-  updatedAt: string;
+  role?: 'user' | 'assistant' | 'system';  // tips 消息无 role
+  content?: string;                         // tips 消息不返回此字段
+  timestamp: number;                        // 秒级时间戳
+  type?: 'text' | 'conversation_tips' | string;
+  tips?: string[];                          // conversation_tips 类型专有
+  toolCalls?: ToolCall[];                   // 工具调用信息
 }
 ```
 
-### PaginatedResult
+**Tips 消息格式**:
+```typescript
+{
+  id: string;
+  conversation_id: string;  // 仅 tips 消息有此字段
+  timestamp: number;
+  type: "conversation_tips";
+  tips: string[];
+  // 注意: tips 消息没有 content 和 role 字段
+}
+```
+
+### ToolCall
 
 ```typescript
-interface PaginatedResult<T> {
-  data: T[];
-  meta: PaginationMeta;
+interface ToolCall {
+  id: string;
+  toolName: string;
+  toolInput: Record<string, unknown>;
+  isCompleted: boolean;
 }
+```
 
-interface PaginationMeta {
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+### Conversation
+
+```typescript
+interface Conversation {
+  id: string;
+  title: string;
+  appId: string | null;
+  userId: string;
+  createdAt: number;        // 毫秒时间戳
+  updatedAt: number;        // 毫秒时间戳
+  lastActiveAt: number;     // 毫秒时间戳
+  messageCount?: number;    // 消息计数
+}
+```
+
+### AppWithConversations
+
+```typescript
+interface AppWithConversations {
+  app: App;
+  conversations: Conversation[];  // 只有一个元素(消息数最多的会话)
+}
+```
+
+### App
+
+```typescript
+interface App {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string;
+  thumbnailUrls: string[];
+  userName: string;
+  version: string;
+  tags: string[] | null;
+  status: 'draft' | 'published' | 'archived';
+  positiveCount: number;
+  forkCount: number;
+  commentCount: number;
+  createdAt: number;        // 毫秒时间戳
+  updatedAt: number;        // 毫秒时间戳
 }
 ```
 
@@ -217,7 +216,7 @@ import {
 } from '@sealink/runtime';
 
 try {
-  await client.conversations.list();
+  const result = await runtime.getAppsWithConversationsList();
 } catch (error) {
   if (error instanceof AuthError) {
     console.error('认证失败:', error.message);
@@ -228,6 +227,48 @@ try {
   } else {
     console.error('未知错误:', error);
   }
+}
+```
+
+## 完整示例
+
+```typescript
+import { initRuntimeSdk } from '@sealink/runtime';
+
+// 初始化 SDK
+const runtime = initRuntimeSdk({
+  environment: 'prod',
+  token: 'your-access-token'
+});
+
+// 1. 获取所有 apps 及其热门会话
+const appsResult = await runtime.getAppsWithConversationsList({
+  page: 1,
+  pageSize: 20
+});
+
+console.log('Apps:', appsResult.apps);
+console.log('有下一页:', appsResult.hasMore);
+
+// 2. 获取某个会话的消息
+const conversationId = appsResult.apps[0]?.conversations[0]?.id;
+if (conversationId) {
+  const messagesResult = await runtime.getMessagesList(conversationId, {
+    page: 1,
+    pageSize: 50
+  });
+
+  console.log('消息列表:', messagesResult.messages);
+  console.log('有更多消息:', messagesResult.hasMore);
+
+  // 处理不同类型的消息
+  messagesResult.messages.forEach(msg => {
+    if (msg.type === 'conversation_tips') {
+      console.log('Tips:', msg.tips);
+    } else {
+      console.log('消息:', msg.content);
+    }
+  });
 }
 ```
 

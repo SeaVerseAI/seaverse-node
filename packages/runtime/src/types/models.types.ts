@@ -13,19 +13,33 @@ export interface Conversation {
   createdAt: number;        // 毫秒时间戳
   updatedAt: number;        // 毫秒时间戳
   lastActiveAt: number;     // 毫秒时间戳
-  urlSessionToken?: string;
+  messageCount?: number;    // 消息计数
 }
 
 /**
- * 消息模型
+ * 工具调用信息
+ */
+export interface ToolCall {
+  id: string;
+  toolName: string;
+  toolInput: Record<string, unknown>;
+  isCompleted: boolean;
+}
+
+/**
+ * 消息模型（兼容旧 API 格式）
  */
 export interface Message {
   id: string;
-  conversationId: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: number;        // 毫秒时间戳
-  metadata?: Record<string, unknown>;
+  // conversationId 字段在普通消息中不返回，仅在 tips 消息中使用 conversation_id
+  conversationId?: string;
+  role?: 'user' | 'assistant' | 'system';  // 可选，tips 消息无 role
+  content?: string;         // 可选，tips 消息不返回 content
+  timestamp: number;        // 秒时间戳（旧 API 格式）
+  type?: 'text' | 'conversation_tips' | string;  // 消息类型
+  tips?: string[];          // 用于 type='conversation_tips'
+  toolCalls?: ToolCall[];   // 用于包含工具调用的消息
+  // metadata 字段不返回给前端（旧 API 格式）
 }
 
 /**
@@ -60,9 +74,8 @@ export interface AppWithConversations {
  * 列表查询结果
  */
 export interface ListAppsWithConversationsResult {
-  urlSessionToken: string | null;
   apps: AppWithConversations[];
-  globalConversations: Conversation[];
+  hasMore: boolean;  // 是否还有下一页
 }
 
 /**
@@ -83,7 +96,9 @@ export namespace DbSchema {
   }
 
   export interface Message {
-    id: string;
+    // 兼容：数据库可能返回 message_id 或 id
+    message_id?: string;
+    id?: string;
     conversation_id: string;
     role: 'user' | 'assistant' | 'system';
     content: string;

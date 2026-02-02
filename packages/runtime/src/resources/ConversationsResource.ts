@@ -9,6 +9,7 @@ import type { PaginationOptions, PaginatedResult } from '../types/pagination.typ
 import { calculatePaginationMeta, pageToOffset } from '../types/pagination.types.js';
 import { transformConversation, toDbConversation } from '../transforms/conversation.transform.js';
 import { transformApp } from '../transforms/app.transform.js';
+import { listAppsWithConversations as listAppsWithConversationsAggregated } from '../aggregated/apps-with-conversations.js';
 
 /**
  * 会话列表查询选项
@@ -58,8 +59,7 @@ export interface UpdateConversationData {
  */
 export class ConversationsResource {
   constructor(
-    private readonly db: DbClient,
-    private readonly getUrlSessionToken: () => Promise<string | null>
+    private readonly db: DbClient
   ) {}
 
   /**
@@ -130,10 +130,7 @@ export class ConversationsResource {
 
     const dbConv = results[0];
 
-    // 获取 url_session_token
-    const urlSessionToken = await this.getUrlSessionToken();
-
-    return transformConversation(dbConv, urlSessionToken || undefined);
+    return transformConversation(dbConv);
   }
 
   /**
@@ -161,60 +158,25 @@ export class ConversationsResource {
 
   /**
    * 聚合查询：获取应用及其会话列表
+   * 每个 app 只返回 message_count 最大的会话
    *
    * 替代 builder-sdk 的 GET /api/apps/with-conversations
-   * 直接从 PostgREST 和 auth service 并行获取数据
+   * 直接从 PostgREST 并行获取数据
    */
   async listAppsWithConversations(options?: {
     appId?: string;
     userId?: string;
+    page?: number;
+    pageSize?: number;
   }): Promise<ListAppsWithConversationsResult> {
-    // 构建查询过滤
-    const appFilter: Record<string, string> = {};
-    const convFilter: Record<string, string> = {};
+    // 注意：这里暂时忽略 userId 过滤，因为聚合函数还不支持
+    // TODO: 在 apps-with-conversations.ts 中添加 userId 过滤支持
 
-    if (options?.appId) {
-      appFilter.app_id = `eq.${options.appId}`;
-      convFilter.app_id = `eq.${options.appId}`;
-    }
-
-    if (options?.userId) {
-      convFilter.user_id = `eq.${options.userId}`;
-    }
-
-    // 并行请求（避免瀑布流）
-    const [dbAppsResult, dbConversationsResult, urlSessionToken] = await Promise.all([
-      this.db.get<DbSchema.App>('apps', { filter: appFilter }),
-      this.db.get<DbSchema.Conversation>('conversations', { filter: convFilter }),
-      this.getUrlSessionToken(),
-    ]);
-
-    // 按 app_id 分组会话
-    const conversationsByAppId = new Map<string, Conversation[]>();
-    const globalConversations: Conversation[] = [];
-
-    for (const dbConv of dbConversationsResult.data) {
-      const conv = transformConversation(dbConv, urlSessionToken || undefined);
-
-      if (conv.appId) {
-        const existing = conversationsByAppId.get(conv.appId) || [];
-        existing.push(conv);
-        conversationsByAppId.set(conv.appId, existing);
-      } else {
-        globalConversations.push(conv);
-      }
-    }
-
-    // 构建结果
-    const apps: AppWithConversations[] = dbAppsResult.data.map(dbApp => ({
-      app: transformApp(dbApp),
-      conversations: conversationsByAppId.get((dbApp.app_id || dbApp.id) as string) || [],
-    }));
-
-    return {
-      urlSessionToken,
-      apps,
-      globalConversations,
-    };
+    return await listAppsWithConversationsAggregated({
+      appId: options?.appId,
+      page: options?.page,
+      pageSize: options?.pageSize,
+      db: this.db,
+    });
   }
 }

@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════
-// 主客户端（推荐使用）
+// 主 API
 // ═══════════════════════════════════════
-export { RuntimeClient, createClient } from './client/RuntimeClient.js';
+export { initRuntimeSdk } from './functional-api.js';
 export type { RuntimeClientConfig } from './types/config.types.js';
 
 // ═══════════════════════════════════════
@@ -10,15 +10,9 @@ export type { RuntimeClientConfig } from './types/config.types.js';
 export type {
   // 对话相关
   Conversation,
-  ListConversationsOptions,
-  CreateConversationData,
-  UpdateConversationData,
   // 消息相关
   Message,
-  ListMessagesOptions,
-  // 分页
-  PaginationMeta,
-  PaginatedResult,
+  ToolCall,
 } from './types/index.js';
 
 // ═══════════════════════════════════════

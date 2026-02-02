@@ -45,10 +45,7 @@ export class RuntimeClient {
     this.db = new DbClient(http);
 
     // 初始化资源
-    this.conversations = new ConversationsResource(
-      this.db,
-      () => this.getUrlSessionToken()
-    );
+    this.conversations = new ConversationsResource(this.db);
     this.messages = new MessagesResource(this.db);
     this.apps = new AppsResource(this.db);
   }

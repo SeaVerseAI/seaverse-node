@@ -5,6 +5,7 @@ export type { RuntimeClientConfig } from './config.types.js';
 export type {
   Conversation,
   Message,
+  ToolCall,
   App,
   AppWithConversations,
   ListAppsWithConversationsResult,

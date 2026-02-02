@@ -15,8 +15,7 @@ function toMilliseconds(seconds: number | undefined): number {
  * 转换数据库会话对象为前端模型
  */
 export function transformConversation(
-  dbConv: DbSchema.Conversation,
-  urlSessionToken?: string
+  dbConv: DbSchema.Conversation
 ): Conversation {
   const id = (dbConv.conversation_id || dbConv.id || '').toString();
   return {
@@ -27,7 +26,7 @@ export function transformConversation(
     createdAt: toMilliseconds(dbConv.created_at),
     updatedAt: toMilliseconds(dbConv.updated_at),
     lastActiveAt: toMilliseconds(dbConv.last_message_created_at || dbConv.updated_at),
-    urlSessionToken,
+    messageCount: dbConv.message_count,
   };
 }
 

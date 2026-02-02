@@ -122,15 +122,15 @@ export class MessagesResource {
     const seenMedia = new Set<string>();
 
     for (const msg of messages) {
-      // 检查消息的 metadata 中是否包含 media 字段
-      const metadata = msg.metadata as any;
+      // 检查消息的 metadata 中是否包含 media 字段（需要通过 any 类型访问）
+      const metadata = (msg as any).metadata;
       const hasMedia = metadata?.type === 'media' && metadata?.media;
 
       if (hasMedia) {
         // 创建去重键（基于 content、role、timestamp 和 media）
         const mediaKey = this.createMediaKey(
-          msg.content,
-          msg.role,
+          msg.content || '',
+          msg.role || 'unknown',
           msg.timestamp,
           metadata.media
         );

@@ -333,7 +333,7 @@
           </div>
           <div class="form-group" id="conv-id-group" style="display:none;">
             <label>Conversation ID (用于获取消息)</label>
-            <input type="text" id="conv-conversation-id" value="081aba68-02aa-4a5e-bdd1-7db2ad112c63" placeholder="conversation-id">
+            <input type="text" id="conv-conversation-id" value="49b2b48b-36f0-4079-ad8b-9fcdbf4371fa" placeholder="conversation-id">
           </div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -406,7 +406,7 @@
     // 真实 SDK 测试页面（本地 dist + importmap）
     // ============================================
 
-    import { createHttpClient, DbClient, createClient } from '@sealink/runtime';
+    import { createHttpClient, DbClient, initRuntimeSdk } from '@sealink/runtime';
     import { createChat } from '@sealink/chat';
 
     // 辅助函数
@@ -639,14 +639,15 @@
         const accessToken = accessTokenOverride || transportToken;
         if (!accessToken) throw new Error('请填写 Access Token（或在 Core Transport 填写 Auth Token）');
 
-        const runtime = createClient({
+        // 统一使用函数式 API
+        const { getConversationsList, getAppsWithConversationsList, getMessagesList } = initRuntimeSdk({
           environment,
           token: accessToken,
           fetch: proxyFetch,
         });
 
         if (operation === 'list') {
-          const result = await runtime.conversations.list({
+          const result = await getConversationsList({
             userId: userId?.trim() || undefined,
             appId: appId || undefined,
             orderBy: 'createdAt',
@@ -656,7 +657,7 @@
           });
           log(
             'conversations-output',
-            `✅ 会话列表获取成功: count=${result.data.length}\n` +
+            `✅ 会话列表获取成功: count=${result}\n` +
             `pagination:\n${safeStringify(result.pagination)}\n\n` +
             `${safeStringify(result.data).slice(0, 2000)}`,
             'success'
@@ -665,13 +666,15 @@
         }
 
         if (operation === 'list-apps') {
-          const result = await runtime.conversations.listAppsWithConversations({
+          const result = await getAppsWithConversationsList({
             appId: appId || undefined,
-            userId: userId?.trim() || undefined,
+            page,
+            pageSize,
           });
+          
           log(
             'conversations-output',
-            `✅ 聚合数据获取成功\nurlSessionToken: ${result.urlSessionToken}\napps: ${result.apps?.length ?? 0}\n\n${safeStringify(result).slice(0, 2000)}`,
+            `✅ 聚合数据获取成功\napps: ${result.apps?.length ?? 0}\nhasMore: ${result.hasMore}\n\n${safeStringify(result).slice(0, 3000)}`,
             'success'
           );
           return;
@@ -682,16 +685,17 @@
             log('conversations-output', '请输入 Conversation ID', 'error');
             return;
           }
-          const result = await runtime.messages.list(conversationId.trim(), {
-            order: 'asc',
+          
+          const result = await getMessagesList(conversationId.trim(), {
             page,
             pageSize,
           });
+          
           log(
             'conversations-output',
             `✅ 消息列表获取成功: count=${result.data.length}\n` +
             `pagination:\n${safeStringify(result.pagination)}\n\n` +
-            `${safeStringify(result.data).slice(0, 2000)}`,
+            `${safeStringify(result)}`,
             'success'
           );
           return;
@@ -700,7 +704,8 @@
         log('conversations-output', `未知操作: ${operation}`, 'warning');
 
       } catch (error) {
-        log('conversations-output', `错误: ${error.message}`, 'error');
+        log('conversations-output', `错误: ${error.message}\n${error.stack || ''}`, 'error');
+        console.error('完整错误信息:', error);
       }
     });
 
@@ -714,14 +719,14 @@
         const accessToken = accessTokenOverride || transportToken;
         if (!accessToken) throw new Error('请填写 Access Token（或在 Core Transport 填写 Auth Token）');
 
-        const runtime = createClient({
+        const { getUrlSessionToken } = initRuntimeSdk({
           environment,
           token: accessToken,
           fetch: proxyFetch,
         });
 
         log('conversations-output', '正在获取 URL Session Token...', 'info');
-        const token = await runtime.getUrlSessionToken();
+        const token = await getUrlSessionToken();
         log(
           'conversations-output',
           `✅ 获取成功\nurlSessionToken: ${token}`,
@@ -859,7 +864,7 @@
         return;
       }
 
-      if (!chatClient || !chatClient.isConnected) {
+      if (!chatClient || !chatClient.isConnected()) {
         showStatus('chat-status', '请先连接 WebSocket', 'error');
         return;
       }
@@ -893,6 +898,9 @@
     // 页面加载完成
     console.log('SeaLink SDK 测试平台已加载');
     console.log('已启用 importmap，本页面会从本地 dist 导入真实 SDK');
+    
+    // SDK 加载完成
+    console.log('✅ SDK 已加载，使用函数式 API');
   </script>
 </body>
 </html>
