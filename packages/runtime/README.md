@@ -1,13 +1,13 @@
-# @sealink/runtime
+# @seaverse/conversation-sdk
 
-SeaLink Runtime SDK - 用于 App、对话（Conversations）和消息（Messages）管理的函数式 SDK。
+SeaVerse Conversation SDK - 用于对话（Conversations）和消息（Messages）管理的函数式 SDK。
 
 ## 安装
 
 ```bash
-npm install @sealink/runtime
+npm install @seaverse/conversation-sdk
 # 或
-pnpm add @sealink/runtime
+pnpm add @seaverse/conversation-sdk
 ```
 
 ## 快速开始
@@ -15,9 +15,9 @@ pnpm add @sealink/runtime
 ### 初始化 SDK
 
 ```typescript
-import { initRuntimeSdk } from '@sealink/runtime';
+import { initConversationSdk } from '@seaverse/conversation-sdk';
 
-const runtime = initRuntimeSdk({
+const sdk = initConversationSdk({
   environment: 'prod', // 'dev' | 'prod'
   token: 'your-access-token'
 });
@@ -27,7 +27,7 @@ const runtime = initRuntimeSdk({
 
 ```typescript
 // 获取所有 apps,每个 app 返回消息数最多的一个会话
-const result = await runtime.getAppsWithConversationsList({
+const result = await sdk.getAppsWithConversationsList({
   page: 1,
   pageSize: 20
 });
@@ -36,7 +36,7 @@ console.log(result.apps);     // AppWithConversations[]
 console.log(result.hasMore);  // boolean - 是否有下一页
 
 // 获取指定 app
-const appResult = await runtime.getAppsWithConversationsList({
+const appResult = await sdk.getAppsWithConversationsList({
   appId: 'app-123',
   page: 1,
   pageSize: 20
@@ -47,7 +47,7 @@ const appResult = await runtime.getAppsWithConversationsList({
 
 ```typescript
 // 获取指定会话的消息列表（倒序,最新的在前）
-const result = await runtime.getMessagesList('conversation-id', {
+const result = await sdk.getMessagesList('conversation-id', {
   page: 1,
   pageSize: 50
 });
@@ -58,9 +58,9 @@ console.log(result.hasMore);   // boolean - 是否有下一页
 
 ## API 参考
 
-### initRuntimeSdk(config)
+### initConversationSdk(config)
 
-初始化 Runtime SDK 并返回函数式 API。
+初始化 Conversation SDK 并返回函数式 API。
 
 **参数**:
 ```typescript
@@ -213,10 +213,10 @@ import {
   AuthError,
   TimeoutError,
   ProtocolError
-} from '@sealink/runtime';
+} from '@seaverse/conversation-sdk';
 
 try {
-  const result = await runtime.getAppsWithConversationsList();
+  const result = await sdk.getAppsWithConversationsList();
 } catch (error) {
   if (error instanceof AuthError) {
     console.error('认证失败:', error.message);
@@ -233,16 +233,16 @@ try {
 ## 完整示例
 
 ```typescript
-import { initRuntimeSdk } from '@sealink/runtime';
+import { initConversationSdk } from '@seaverse/conversation-sdk';
 
 // 初始化 SDK
-const runtime = initRuntimeSdk({
+const sdk = initConversationSdk({
   environment: 'prod',
   token: 'your-access-token'
 });
 
 // 1. 获取所有 apps 及其热门会话
-const appsResult = await runtime.getAppsWithConversationsList({
+const appsResult = await sdk.getAppsWithConversationsList({
   page: 1,
   pageSize: 20
 });
@@ -253,7 +253,7 @@ console.log('有下一页:', appsResult.hasMore);
 // 2. 获取某个会话的消息
 const conversationId = appsResult.apps[0]?.conversations[0]?.id;
 if (conversationId) {
-  const messagesResult = await runtime.getMessagesList(conversationId, {
+  const messagesResult = await sdk.getMessagesList(conversationId, {
     page: 1,
     pageSize: 50
   });

@@ -1,7 +1,7 @@
 {
-  "name": "@sealink/runtime",
+  "name": "@seaverse/conversation-sdk",
   "version": "0.2.0",
-  "description": "SeaLink Runtime SDK - Unified SDK for conversations, messages, apps, and data access with PostgREST and HTTP transport",
+  "description": "SeaVerse Conversation SDK - SDK for conversations and messages management",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -22,15 +22,12 @@
     "clean": "rm -rf dist"
   },
   "keywords": [
-    "sealink",
-    "runtime",
+    "seaverse",
+    "conversation",
     "sdk",
     "conversations",
     "messages",
-    "apps",
-    "postgrest",
-    "http",
-    "transport"
+    "apps"
   ],
   "author": "SeaVerse",
   "license": "MIT",

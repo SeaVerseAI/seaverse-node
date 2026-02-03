@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════
 // 主 API
 // ═══════════════════════════════════════
-export { initRuntimeSdk } from './functional-api.js';
-export type { RuntimeClientConfig } from './types/config.types.js';
+export { initConversationSdk } from './functional-api.js';
+export type { ConversationClientConfig } from './types/config.types.js';
 
 // ═══════════════════════════════════════
 // 核心业务类型

@@ -1,5 +1,5 @@
 // 配置类型
-export type { RuntimeClientConfig } from './config.types.js';
+export type { ConversationClientConfig } from './config.types.js';
 
 // 业务模型类型（camelCase）
 export type {

@@ -395,7 +395,7 @@
   <script type="importmap">
     {
       "imports": {
-        "@sealink/runtime": "./packages/runtime/dist/index.js",
+        "@seaverse/conversation-sdk": "./packages/runtime/dist/index.js",
         "@sealink/chat": "./packages/chat/dist/index.mjs"
       }
     }
@@ -406,7 +406,7 @@
     // 真实 SDK 测试页面（本地 dist + importmap）
     // ============================================
 
-    import { createHttpClient, DbClient, initRuntimeSdk } from '@sealink/runtime';
+    import { initConversationSdk } from '@seaverse/conversation-sdk';
     import { createChat } from '@sealink/chat';
 
     // 辅助函数
@@ -529,89 +529,21 @@
       return { baseUrl, token };
     }
 
-    function createClients() {
-      const { baseUrl, token } = getTransportInputs();
-
-      const http = createHttpClient({
-        baseUrl,
-        fetch: proxyFetch,
-        // 注意：SDK 设计为显式注入 token，这里仅从输入框读取
-        getAuthToken: async () => (token ? token : null),
-      });
-
-      const db = new DbClient(http);
-
-      return { http, db };
-    }
+    // 注意：底层组件（createHttpClient、DbClient）已从 SDK 中移除
+    // 以下底层测试功能已禁用，仅保留业务 API 测试
 
     // ============================================
-    // 1. Core Transport 测试
+    // 1. Core Transport 测试（已禁用）
     // ============================================
     document.getElementById('test-transport').addEventListener('click', async () => {
-      try {
-        const { baseUrl, token } = getTransportInputs();
-        log('transport-output', '正在创建 HTTP 客户端...', 'info');
-
-        const { http } = createClients();
-        log(
-          'transport-output',
-          `HTTP 客户端已创建\nBase URL: ${baseUrl}\nToken: ${token ? '***已设置***' : '未设置'}`,
-          'success'
-        );
-
-        log('transport-output', '发送 GET 请求到 /apps?limit=1 ...', 'info');
-        const response = await http.get('/apps?limit=1');
-
-        log(
-          'transport-output',
-          `响应状态: ${response.status} ${response.statusText}\n\n数据预览:\n${safeStringify(response.data).slice(0, 2000)}`,
-          'success'
-        );
-
-      } catch (error) {
-        log('transport-output', `错误: ${error.message}`, 'error');
-      }
+      log('transport-output', '⚠️ 底层组件测试已禁用，请使用业务 API 测试', 'warning');
     });
 
     // ============================================
-    // 2. PostgREST 客户端测试
+    // 2. PostgREST 客户端测试（已禁用）
     // ============================================
     document.getElementById('test-postgrest').addEventListener('click', async () => {
-      const table = document.getElementById('postgrest-table').value;
-      const filter = document.getElementById('postgrest-filter').value;
-      const order = document.getElementById('postgrest-order').value;
-      const limit = document.getElementById('postgrest-limit').value;
-
-      try {
-        if (!table) throw new Error('请填写 Table Name');
-        log('postgrest-output', '正在创建 DbClient...', 'info');
-
-        const { db } = createClients();
-        const parsedFilter = parsePostgrestFilter(filter);
-
-        const options = {
-          ...(parsedFilter ? { filter: parsedFilter } : {}),
-          ...(order ? { order: order.trim() } : {}),
-          ...(limit ? { limit: Number(limit) } : {}),
-        };
-
-        log(
-          'postgrest-output',
-          `查询参数:\n${safeStringify(options)}`,
-          'info'
-        );
-
-        const result = await db.get(table.trim(), options);
-        const rows = result.data;
-        log(
-          'postgrest-output',
-          `✅ 查询成功: rows=${rows.length}\ncount=${result.count ?? 'null'}\n\n数据预览:\n${safeStringify(rows).slice(0, 2000)}`,
-          'success'
-        );
-
-      } catch (error) {
-        log('postgrest-output', `错误: ${error.message}`, 'error');
-      }
+      log('postgrest-output', '⚠️ 底层组件测试已禁用，请使用业务 API 测试', 'warning');
     });
 
     // ============================================
@@ -640,7 +572,7 @@
         if (!accessToken) throw new Error('请填写 Access Token（或在 Core Transport 填写 Auth Token）');
 
         // 统一使用函数式 API
-        const { getConversationsList, getAppsWithConversationsList, getMessagesList } = initRuntimeSdk({
+        const { getConversationsList, getAppsWithConversationsList, getMessagesList } = initConversationSdk({
           environment,
           token: accessToken,
           fetch: proxyFetch,
@@ -657,9 +589,9 @@
           });
           log(
             'conversations-output',
-            `✅ 会话列表获取成功: count=${result}\n` +
+            `✅ 会话列表获取成功: count=${result.data.length}\n` +
             `pagination:\n${safeStringify(result.pagination)}\n\n` +
-            `${safeStringify(result.data).slice(0, 2000)}`,
+            `data:\n${safeStringify(result.data).slice(0, 2000)}`,
             'success'
           );
           return;
@@ -719,7 +651,7 @@
         const accessToken = accessTokenOverride || transportToken;
         if (!accessToken) throw new Error('请填写 Access Token（或在 Core Transport 填写 Auth Token）');
 
-        const { getUrlSessionToken } = initRuntimeSdk({
+        const { getUrlSessionToken } = initConversationSdk({
           environment,
           token: accessToken,
           fetch: proxyFetch,

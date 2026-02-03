@@ -1,9 +1,9 @@
 import type { TokenProvider } from './token.types.js';
 
 /**
- * Runtime 客户端配置
+ * Conversation SDK 客户端配置
  */
-export interface RuntimeClientConfig {
+export interface ConversationClientConfig {
   /**
    * 环境（自动映射到对应的服务 URL）
    */

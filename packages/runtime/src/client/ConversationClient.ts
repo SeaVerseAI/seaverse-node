@@ -1,17 +1,17 @@
 import { createHttpClient } from '../transport/index.js';
 import { DbClient } from '../data/DbClient.js';
 import { getUrlSessionToken as getToken } from '../session/session-token.js';
-import type { RuntimeClientConfig } from '../types/config.types.js';
+import type { ConversationClientConfig } from '../types/config.types.js';
 import { getEnvironmentConfig } from './EnvironmentConfig.js';
 import { ConversationsResource } from '../resources/ConversationsResource.js';
 import { MessagesResource } from '../resources/MessagesResource.js';
 import { AppsResource } from '../resources/AppsResource.js';
 
 /**
- * 运行时客户端
+ * Conversation SDK 客户端
  */
-export class RuntimeClient {
-  private readonly config: Required<RuntimeClientConfig> & {
+export class ConversationClient {
+  private readonly config: Required<ConversationClientConfig> & {
     urls: ReturnType<typeof getEnvironmentConfig>;
   };
   private readonly db: DbClient;
@@ -21,7 +21,7 @@ export class RuntimeClient {
   public readonly messages: MessagesResource;
   public readonly apps: AppsResource;
 
-  constructor(config: RuntimeClientConfig) {
+  constructor(config: ConversationClientConfig) {
     // 环境配置解析
     const envConfig = getEnvironmentConfig(config.environment);
 
@@ -66,8 +66,8 @@ export class RuntimeClient {
 }
 
 /**
- * 创建运行时客户端（工厂函数）
+ * 创建 Conversation SDK 客户端（工厂函数）
  */
-export function createClient(config: RuntimeClientConfig): RuntimeClient {
-  return new RuntimeClient(config);
+export function createClient(config: ConversationClientConfig): ConversationClient {
+  return new ConversationClient(config);
 }

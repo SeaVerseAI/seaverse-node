@@ -5,16 +5,16 @@
 
 import { createHttpClient } from './transport/index.js';
 import { DbClient } from './data/DbClient.js';
-import type { RuntimeClientConfig } from './types/config.types.js';
+import type { ConversationClientConfig } from './types/config.types.js';
 import { getEnvironmentConfig } from './client/EnvironmentConfig.js';
 import { listAppsWithConversations } from './aggregated/apps-with-conversations.js';
 import type { ListAppsWithConversationsResult, Message } from './types/index.js';
 import { MessagesResource } from './resources/MessagesResource.js';
 
 /**
- * 初始化 Runtime SDK
+ * 初始化 Conversation SDK
  */
-export function initRuntimeSdk(config: RuntimeClientConfig) {
+export function initConversationSdk(config: ConversationClientConfig) {
   // 环境配置解析
   const envConfig = getEnvironmentConfig(config.environment);
 
