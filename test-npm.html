@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SeaLink SDK 测试平台 (NPM v0.2.3 远端测试)</title>
+  <title>SeaLink SDK 测试平台 (NPM v0.2.4 远端测试)</title>
   <style>
     * {
       margin: 0;
@@ -227,11 +227,11 @@
 <body>
   <div class="container">
     <header>
-      <h1>🌊 SeaLink SDK 测试平台 (NPM v0.2.3 远端测试)</h1>
+      <h1>🌊 SeaLink SDK 测试平台 (NPM v0.2.4 远端测试)</h1>
       <p class="subtitle">
         <span class="badge npm">NPM Remote</span>
         <span class="badge">@seaverse/conversation-sdk</span>
-        <span class="badge">v0.2.3</span>
+        <span class="badge">v0.2.4</span>
       </p>
       <p class="version-info">从 npm 远端加载，验证发布后的包</p>
     </header>
@@ -262,7 +262,7 @@
         <h2>📦 NPM 包信息</h2>
         <div class="config-section">
           <p><strong>包名：</strong><code>@seaverse/conversation-sdk</code></p>
-          <p style="margin-top: 8px;"><strong>版本：</strong><code>0.2.3</code></p>
+          <p style="margin-top: 8px;"><strong>版本：</strong><code>0.2.4</code></p>
           <p style="margin-top: 8px;"><strong>来源：</strong><code>npm 远端 (esm.sh CDN)</code></p>
           <p style="margin-top: 8px;"><strong>可用 API：</strong></p>
           <ul class="api-list">
@@ -487,7 +487,7 @@
         initConversationSdk = module.initConversationSdk;
         
         if (typeof initConversationSdk === 'function') {
-          log('npm-output', `✅ SDK 从本地 npm 包 (v0.2.3) 加载成功！`, 'success');
+          log('npm-output', `✅ SDK 从本地 npm 包 (v0.2.4) 加载成功！`, 'success');
           document.getElementById('init-sdk').disabled = false;
           return true;
         }
@@ -498,9 +498,9 @@
       // 2. 回退到 CDN
       const timestamp = Date.now();
       const cdnUrls = [
-        `https://esm.sh/@seaverse/conversation-sdk@0.2.3?t=${timestamp}`,
-        `https://cdn.jsdelivr.net/npm/@seaverse/conversation-sdk@0.2.3/dist/index.js`,
-        `https://unpkg.com/@seaverse/conversation-sdk@0.2.3/dist/index.js`,
+        `https://esm.sh/@seaverse/conversation-sdk@0.2.4?t=${timestamp}`,
+        `https://cdn.jsdelivr.net/npm/@seaverse/conversation-sdk@0.2.4/dist/index.js`,
+        `https://unpkg.com/@seaverse/conversation-sdk@0.2.4/dist/index.js`,
       ];
 
       for (const url of cdnUrls) {
@@ -796,7 +796,7 @@
     // 页面加载时自动加载 SDK
     loadSdk();
 
-    console.log('SeaLink SDK 测试平台 (NPM v0.2.3 远端测试) 已加载');
+    console.log('SeaLink SDK 测试平台 (NPM v0.2.4 远端测试) 已加载');
   </script>
 </body>
 </html>
