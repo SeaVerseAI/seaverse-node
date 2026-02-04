@@ -8,6 +8,7 @@ import type { DbSchema } from '../types/models.types.js';
 import { transformConversation } from '../transforms/conversation.transform.js';
 import { transformApp } from '../transforms/app.transform.js';
 import { pageToOffset } from '../types/pagination.types.js';
+import { getUrlSessionToken } from '../session/session-token.js';
 
 /**
  * Configuration for aggregated query
@@ -34,6 +35,17 @@ export interface ListAppsWithConversationsConfig {
    * Database client
    */
   db: DbClient;
+
+  /**
+   * Access token for URL session token generation
+   */
+  accessToken: string;
+
+  /**
+   * Auth service base URL
+   * @default "https://auth.sg.seaverse.dev"
+   */
+  authBaseUrl?: string;
 }
 
 /**
@@ -56,13 +68,15 @@ export async function listAppsWithConversations(
     page = 1,
     pageSize = 20,
     db,
+    accessToken,
+    authBaseUrl,
   } = config;
 
   // Calculate pagination params
   const { limit, offset } = pageToOffset(page, pageSize);
 
-  // Parallel requests to avoid waterfall
-  const [dbApps, dbConversations] = await Promise.all([
+  // Parallel requests to avoid waterfall (including url_session_token)
+  const [dbApps, dbConversations, urlSessionToken] = await Promise.all([
     // Get apps with pagination, sorted by created_at descending
     db.get<DbSchema.App>(
       'apps',
@@ -78,6 +92,12 @@ export async function listAppsWithConversations(
         ? { filter: { app_id: `eq.${appId}` }, order: 'updated_at.desc' }
         : { order: 'updated_at.desc' }
     ),
+
+    // Get URL session token from auth service
+    getUrlSessionToken({
+      accessToken,
+      authBaseUrl,
+    }),
   ]);
 
   // Group conversations by appId and include ALL conversations
@@ -85,6 +105,7 @@ export async function listAppsWithConversations(
   const conversationsByAppId = new Map<string, Conversation[]>();
 
   for (const dbConv of dbConversations.data) {
+    // Don't pass urlSessionToken - it will be returned at top level
     const conv = transformConversation(dbConv);
 
     // Only process conversations with appId (skip global conversations)
@@ -113,5 +134,6 @@ export async function listAppsWithConversations(
   return {
     apps: appsWithConversations,
     hasMore,
+    url_session_token: urlSessionToken,
   };
 }

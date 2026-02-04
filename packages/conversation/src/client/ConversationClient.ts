@@ -45,7 +45,7 @@ export class ConversationClient {
     this.db = new DbClient(http);
 
     // 初始化资源
-    this.conversations = new ConversationsResource(this.db);
+    this.conversations = new ConversationsResource(this.db, this.config.getToken, this.config.urls.auth);
     this.messages = new MessagesResource(this.db);
     this.apps = new AppsResource(this.db);
   }

@@ -60,7 +60,9 @@ export interface UpdateConversationData {
  */
 export class ConversationsResource {
   constructor(
-    private readonly db: DbClient
+    private readonly db: DbClient,
+    private readonly getAccessToken?: () => string | null | Promise<string | null>,
+    private readonly authBaseUrl?: string
   ) {}
 
   /**
@@ -217,11 +219,20 @@ export class ConversationsResource {
     // 注意：这里暂时忽略 userId 过滤，因为聚合函数还不支持
     // TODO: 在 apps-with-conversations.ts 中添加 userId 过滤支持
 
+    // 获取accessToken
+    let accessToken: string | null = null;
+    if (this.getAccessToken) {
+      const tokenResult = this.getAccessToken();
+      accessToken = tokenResult instanceof Promise ? await tokenResult : tokenResult;
+    }
+
     return await listAppsWithConversationsAggregated({
       appId: options?.appId,
       page: options?.page,
       pageSize: options?.pageSize,
       db: this.db,
+      accessToken: accessToken || '',
+      authBaseUrl: this.authBaseUrl,
     });
   }
 }

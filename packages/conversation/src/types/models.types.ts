@@ -93,6 +93,7 @@ export interface AppWithConversations {
 export interface ListAppsWithConversationsResult {
   apps: AppWithConversations[];
   hasMore: boolean;  // 是否还有下一页
+  url_session_token: string | null;  // URL会话令牌，用于子域名预览场景
 }
 
 /**

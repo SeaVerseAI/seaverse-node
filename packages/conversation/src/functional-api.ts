@@ -39,7 +39,7 @@ export function initConversationSdk(config: ConversationClientConfig) {
 
   const db = new DbClient(http);
   const messagesResource = new MessagesResource(db);
-  const conversationsResource = new ConversationsResource(db);
+  const conversationsResource = new ConversationsResource(db, fullConfig.getToken, fullConfig.urls.auth);
 
   /**
    * 获取会话列表（带分页）
@@ -59,9 +59,14 @@ export function initConversationSdk(config: ConversationClientConfig) {
     page?: number;
     pageSize?: number;
   }): Promise<ListAppsWithConversationsResult> {
+    // 获取当前token
+    const accessToken = await fullConfig.getToken();
+
     return listAppsWithConversations({
       ...options,
       db,
+      accessToken: accessToken || '',
+      authBaseUrl: fullConfig.urls.auth,
     });
   }
 
