@@ -329,11 +329,17 @@
               <option value="list">获取会话列表</option>
               <option value="list-apps">获取应用和会话聚合数据</option>
               <option value="messages">获取消息列表</option>
+              <option value="create">创建会话</option>
+              <option value="delete">删除会话</option>
             </select>
           </div>
           <div class="form-group" id="conv-id-group" style="display:none;">
-            <label>Conversation ID (用于获取消息)</label>
+            <label>Conversation ID (用于获取消息/删除会话)</label>
             <input type="text" id="conv-conversation-id" value="49b2b48b-36f0-4079-ad8b-9fcdbf4371fa" placeholder="conversation-id">
+          </div>
+          <div class="form-group" id="conv-title-group" style="display:none;">
+            <label>会话标题 (用于创建会话)</label>
+            <input type="text" id="conv-title" value="测试会话" placeholder="新会话标题">
           </div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -395,7 +401,7 @@
   <script type="importmap">
     {
       "imports": {
-        "@seaverse/conversation-sdk": "./packages/runtime/dist/index.js",
+        "@seaverse/conversation-sdk": "./packages/conversation/dist/index.js",
         "@sealink/chat": "./packages/chat/dist/index.mjs"
       }
     }
@@ -551,9 +557,14 @@
     // ============================================
     const convOperationSelect = document.getElementById('conv-operation');
     const convIdGroup = document.getElementById('conv-id-group');
+    const convTitleGroup = document.getElementById('conv-title-group');
 
     convOperationSelect.addEventListener('change', (e) => {
-      convIdGroup.style.display = e.target.value === 'messages' ? 'block' : 'none';
+      const op = e.target.value;
+      // 显示 conversation ID 输入框（用于 messages 和 delete 操作）
+      convIdGroup.style.display = (op === 'messages' || op === 'delete') ? 'block' : 'none';
+      // 显示标题输入框（用于 create 操作）
+      convTitleGroup.style.display = op === 'create' ? 'block' : 'none';
     });
 
     document.getElementById('test-conversations').addEventListener('click', async () => {
@@ -572,7 +583,7 @@
         if (!accessToken) throw new Error('请填写 Access Token（或在 Core Transport 填写 Auth Token）');
 
         // 统一使用函数式 API
-        const { getConversationsList, getAppsWithConversationsList, getMessagesList } = initConversationSdk({
+        const { getConversationsList, getAppsWithConversationsList, getMessagesList, createConversation, deleteConversation } = initConversationSdk({
           environment,
           token: accessToken,
           fetch: proxyFetch,
@@ -625,9 +636,54 @@
           
           log(
             'conversations-output',
-            `✅ 消息列表获取成功: count=${result.data.length}\n` +
-            `pagination:\n${safeStringify(result.pagination)}\n\n` +
+            `✅ 消息列表获取成功: count=${result.messages.length}\n` +
+            `hasMore: ${result.hasMore}\n\n` +
             `${safeStringify(result)}`,
+            'success'
+          );
+          return;
+        }
+
+        if (operation === 'create') {
+          const title = document.getElementById('conv-title').value.trim();
+          if (!title) {
+            log('conversations-output', '请输入会话标题', 'error');
+            return;
+          }
+          
+          log('conversations-output', '正在创建会话...', 'info');
+          
+          const result = await createConversation({
+            title,
+            appId: appId || null,
+            userId: userId?.trim() || '',
+          });
+          
+          log(
+            'conversations-output',
+            `✅ 会话创建成功\n` +
+            `conversation_id: ${result.conversation_id}\n` +
+            `title: ${result.title}\n\n` +
+            `${safeStringify(result)}`,
+            'success'
+          );
+          return;
+        }
+
+        if (operation === 'delete') {
+          if (!conversationId) {
+            log('conversations-output', '请输入要删除的 Conversation ID', 'error');
+            return;
+          }
+          
+          log('conversations-output', `正在删除会话 ${conversationId}...`, 'info');
+          
+          await deleteConversation(conversationId.trim());
+          
+          log(
+            'conversations-output',
+            `✅ 会话删除成功\n` +
+            `已删除 conversation_id: ${conversationId}`,
             'success'
           );
           return;

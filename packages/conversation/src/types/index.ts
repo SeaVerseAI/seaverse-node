@@ -4,6 +4,7 @@ export type { ConversationClientConfig } from './config.types.js';
 // 业务模型类型（camelCase）
 export type {
   Conversation,
+  ConversationResponse,
   Message,
   ToolCall,
   App,

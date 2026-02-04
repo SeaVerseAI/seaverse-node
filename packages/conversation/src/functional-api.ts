@@ -8,8 +8,10 @@ import { DbClient } from './data/DbClient.js';
 import type { ConversationClientConfig } from './types/config.types.js';
 import { getEnvironmentConfig } from './client/EnvironmentConfig.js';
 import { listAppsWithConversations } from './aggregated/apps-with-conversations.js';
-import type { ListAppsWithConversationsResult, Message } from './types/index.js';
+import type { ListAppsWithConversationsResult, Message, ConversationResponse, Conversation } from './types/index.js';
+import type { PaginatedResult } from './types/pagination.types.js';
 import { MessagesResource } from './resources/MessagesResource.js';
+import { ConversationsResource, type CreateConversationData, type ListConversationsOptions } from './resources/ConversationsResource.js';
 
 /**
  * 初始化 Conversation SDK
@@ -37,10 +39,20 @@ export function initConversationSdk(config: ConversationClientConfig) {
 
   const db = new DbClient(http);
   const messagesResource = new MessagesResource(db);
+  const conversationsResource = new ConversationsResource(db);
+
+  /**
+   * 获取会话列表（带分页）
+   */
+  async function getConversationsList(
+    options?: ListConversationsOptions
+  ): Promise<PaginatedResult<Conversation>> {
+    return conversationsResource.list(options);
+  }
 
   /**
    * 获取 Apps 及其会话列表
-   * 每个 app 只返回消息最多的那一个会话
+   * 每个 app 返回全部会话,按最后更新时间倒序排列
    */
   async function getAppsWithConversationsList(options?: {
     appId?: string;
@@ -72,8 +84,25 @@ export function initConversationSdk(config: ConversationClientConfig) {
     };
   }
 
+  /**
+   * 创建会话
+   */
+  async function createConversation(data: CreateConversationData): Promise<ConversationResponse> {
+    return conversationsResource.createWithResponse(data);
+  }
+
+  /**
+   * 删除会话
+   */
+  async function deleteConversation(conversationId: string): Promise<void> {
+    return conversationsResource.delete(conversationId);
+  }
+
   return {
+    getConversationsList,
     getAppsWithConversationsList,
     getMessagesList,
+    createConversation,
+    deleteConversation,
   };
 }

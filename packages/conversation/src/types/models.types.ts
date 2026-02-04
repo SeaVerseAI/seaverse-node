@@ -3,7 +3,7 @@
  */
 
 /**
- * 会话模型
+ * 会话模型（camelCase，内部使用）
  */
 export interface Conversation {
   id: string;
@@ -14,6 +14,23 @@ export interface Conversation {
   updatedAt: number;        // 毫秒时间戳
   lastActiveAt: number;     // 毫秒时间戳
   messageCount?: number;    // 消息计数
+}
+
+/**
+ * 会话响应模型（snake_case，匹配 runtime-plugins 格式）
+ */
+export interface ConversationResponse {
+  conversation_id: string;
+  app_id: string | null;
+  backend: string;
+  backend_session_id: string | null;
+  title: string;
+  created_at: number;       // 秒时间戳
+  updated_at: number;       // 秒时间戳
+  message_count: number;
+  skills_json: any | null;
+  metadata: Record<string, unknown>;
+  user_id: string;
 }
 
 /**

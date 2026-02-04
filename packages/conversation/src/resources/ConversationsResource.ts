@@ -1,13 +1,14 @@
 import type { DbClient } from '../data/DbClient.js';
 import type {
   Conversation,
+  ConversationResponse,
   AppWithConversations,
   ListAppsWithConversationsResult,
   DbSchema
 } from '../types/models.types.js';
 import type { PaginationOptions, PaginatedResult } from '../types/pagination.types.js';
 import { calculatePaginationMeta, pageToOffset } from '../types/pagination.types.js';
-import { transformConversation, toDbConversation } from '../transforms/conversation.transform.js';
+import { transformConversation, toDbConversation, toConversationResponse } from '../transforms/conversation.transform.js';
 import { transformApp } from '../transforms/app.transform.js';
 import { listAppsWithConversations as listAppsWithConversationsAggregated } from '../aggregated/apps-with-conversations.js';
 
@@ -118,19 +119,63 @@ export class ConversationsResource {
    * 创建会话
    */
   async create(data: CreateConversationData): Promise<Conversation> {
-    const dbData = toDbConversation({
-      title: data.title,
-      appId: data.appId,
-      userId: data.userId,
-    });
+    const now = Math.floor(Date.now() / 1000); // 秒时间戳
+    
+    // 生成唯一的 conversation_id（格式与 runtime-plugins 一致）
+    const conversationId = crypto.randomUUID();
 
-    const results = await this.db.post<DbSchema.Conversation>('conversations', dbData, {
+    // 构建完整的数据库数据（匹配 runtime-plugins 的实现）
+    const fullDbData = {
+      conversation_id: conversationId,
+      app_id: data.appId || null,
+      backend: 'seaverse',
+      backend_session_id: null,
+      title: data.title || 'New Conversation',
+      created_at: now,
+      updated_at: now,
+      message_count: 0,
+      user_id: data.userId,
+    };
+
+    const results = await this.db.post<DbSchema.Conversation>('conversations', fullDbData, {
       returning: 'representation',
     });
 
     const dbConv = results[0];
 
     return transformConversation(dbConv);
+  }
+
+  /**
+   * 创建会话并返回 API 响应格式（snake_case）
+   */
+  async createWithResponse(data: CreateConversationData): Promise<ConversationResponse> {
+    const now = Math.floor(Date.now() / 1000); // 秒时间戳
+    
+    // 生成唯一的 conversation_id（格式与 runtime-plugins 一致）
+    const conversationId = crypto.randomUUID();
+
+    // 构建完整的数据库数据（匹配 runtime-plugins 的实现）
+    const fullDbData = {
+      conversation_id: conversationId,
+      app_id: data.appId || null,
+      backend: 'seaverse',
+      backend_session_id: null,
+      title: data.title || 'New Conversation',
+      created_at: now,
+      updated_at: now,
+      message_count: 0,
+      // user_id 由 RLS trigger 自动填充，但我们也传递以备用
+      user_id: data.userId,
+    };
+
+    const results = await this.db.post<DbSchema.Conversation>('conversations', fullDbData, {
+      returning: 'representation',
+    });
+
+    const dbConv = results[0];
+
+    return toConversationResponse(dbConv);
   }
 
   /**

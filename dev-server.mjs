@@ -97,19 +97,44 @@ async function handleProxy(req, res, urlObj) {
   for await (const c of req) chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
   const body = chunks.length ? Buffer.concat(chunks) : undefined;
 
-  // 复制 header：去掉 host/origin 等可能干扰的头
+  // 复制 header：只保留必要的头，过滤掉可能导致 431 错误的大 header
   const headers = new Headers();
+  // 白名单：只转发这些 header
+  const allowedHeaders = new Set([
+    'authorization',
+    'content-type',
+    'accept',
+    'prefer',  // PostgREST 使用
+  ]);
+  
+  // 调试日志：显示原始请求头
+  let totalHeaderSize = 0;
+  console.log('[proxy] 原始请求头:');
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (!v) continue;
+    const size = k.length + String(v).length;
+    totalHeaderSize += size;
+    console.log(`  ${k}: ${String(v).slice(0, 50)}${String(v).length > 50 ? '...' : ''} (${size} bytes)`);
+  }
+  console.log(`[proxy] 总请求头大小: ${totalHeaderSize} bytes`);
+  
   for (const [k, v] of Object.entries(req.headers)) {
     if (!v) continue;
     const key = k.toLowerCase();
-    if (key === 'host') continue;
-    if (key === 'origin') continue;
-    if (key === 'referer') continue;
-    if (key === 'content-length') continue;
-    // 允许 Authorization / Range 等业务头透传
+    if (!allowedHeaders.has(key)) continue;
     if (Array.isArray(v)) headers.set(k, v.join(','));
     else headers.set(k, v);
   }
+  
+  // 显示过滤后的请求头
+  let filteredSize = 0;
+  console.log('[proxy] 过滤后的请求头:');
+  headers.forEach((v, k) => {
+    const size = k.length + v.length;
+    filteredSize += size;
+    console.log(`  ${k}: ${v.slice(0, 50)}${v.length > 50 ? '...' : ''}`);
+  });
+  console.log(`[proxy] 过滤后大小: ${filteredSize} bytes`);
 
   let upstreamResp;
   try {

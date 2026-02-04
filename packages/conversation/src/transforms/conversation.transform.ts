@@ -1,4 +1,4 @@
-import type { Conversation, DbSchema } from '../types/models.types.js';
+import type { Conversation, ConversationResponse, DbSchema } from '../types/models.types.js';
 
 /**
  * 秒时间戳转换为毫秒时间戳
@@ -43,4 +43,26 @@ export function toDbConversation(conv: Partial<Conversation>): Partial<DbSchema.
   if (conv.userId) result.user_id = conv.userId;
 
   return result;
+}
+
+/**
+ * 转换数据库会话对象为 API 响应格式（snake_case，匹配 runtime-plugins）
+ */
+export function toConversationResponse(
+  dbConv: DbSchema.Conversation
+): ConversationResponse {
+  const conversation_id = (dbConv.conversation_id || dbConv.id || '').toString();
+  return {
+    conversation_id,
+    app_id: dbConv.app_id,
+    backend: 'seaverse',
+    backend_session_id: null,
+    title: dbConv.title || 'Untitled',
+    created_at: dbConv.created_at || 0,
+    updated_at: dbConv.updated_at || 0,
+    message_count: dbConv.message_count || 0,
+    skills_json: null,
+    metadata: {},
+    user_id: dbConv.user_id,
+  };
 }

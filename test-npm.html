@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SeaLink SDK 测试平台 (NPM v0.2.3 远端测试)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #11998e;
+      font-size: 18px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: monospace;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #11998e;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.danger {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+
+    button.danger:hover {
+      box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+    }
+
+    .output {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 15px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .status {
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #11998e;
+      color: white;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 8px;
+    }
+
+    .badge.npm {
+      background: #cb3837;
+    }
+
+    .badge.local {
+      background: #f39c12;
+    }
+
+    .config-section {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+
+    code {
+      background: #2d3748;
+      color: #68d391;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .version-info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .api-list {
+      margin-top: 8px;
+      margin-left: 20px;
+      font-size: 13px;
+    }
+
+    .api-list li {
+      margin: 4px 0;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌊 SeaLink SDK 测试平台 (NPM v0.2.3 远端测试)</h1>
+      <p class="subtitle">
+        <span class="badge npm">NPM Remote</span>
+        <span class="badge">@seaverse/conversation-sdk</span>
+        <span class="badge">v0.2.3</span>
+      </p>
+      <p class="version-info">从 npm 远端加载，验证发布后的包</p>
+    </header>
+
+    <div class="grid">
+      <!-- SDK 配置 -->
+      <div class="card">
+        <h2>⚙️ SDK 配置</h2>
+        <div class="config-section">
+          <div class="form-group">
+            <label>Environment</label>
+            <select id="sdk-environment">
+              <option value="dev" selected>dev</option>
+              <option value="prod">prod</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Access Token</label>
+            <input type="text" id="sdk-token" value="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaG4iOiJzZWF2ZXJzZSIsInNjcCI6WyJsb2dpbiIsImFwaSIsImFjY291bnQiXSwicGF5bG9hZCI6eyJ1c2VyX2lkIjoiMUNXdEV3TG1rTDcza2dNWEt6WEJkSiIsInVzZXJuYW1lIjoiZGF0b3UiLCJlbWFpbCI6ImRhdG91QGhhaXlpLmFydCJ9LCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJzdWIiOiIxQ1d0RXdMbWtMNzNrZ01YS3pYQmRKIiwiZXhwIjoxNzk5NTcyNDIzLCJuYmYiOjE3NjgwMzY0MjMsImlhdCI6MTc2ODAzNjQyMywianRpIjoiNzkxNDc2NDYtMWY2NS00Y2IxLWJkNmMtN2FjZTU0MjNjOTQxIn0.kXQ7X2M8EC6Ikvzpu_boZsLeNxNGROBGVQZX5qnwTQg" placeholder="your-access-token">
+          </div>
+        </div>
+        <button id="init-sdk">初始化 SDK</button>
+        <div id="sdk-status"></div>
+      </div>
+
+      <!-- SDK 信息 -->
+      <div class="card">
+        <h2>📦 NPM 包信息</h2>
+        <div class="config-section">
+          <p><strong>包名：</strong><code>@seaverse/conversation-sdk</code></p>
+          <p style="margin-top: 8px;"><strong>版本：</strong><code>0.2.3</code></p>
+          <p style="margin-top: 8px;"><strong>来源：</strong><code>npm 远端 (esm.sh CDN)</code></p>
+          <p style="margin-top: 8px;"><strong>可用 API：</strong></p>
+          <ul class="api-list">
+            <li><code>getConversationsList()</code> - 获取会话列表</li>
+            <li><code>getAppsWithConversationsList()</code> - 获取应用聚合数据</li>
+            <li><code>getMessagesList()</code> - 获取消息列表</li>
+            <li><code>createConversation()</code> - 创建会话</li>
+            <li><code>deleteConversation()</code> - 删除会话</li>
+          </ul>
+        </div>
+        <div id="npm-output" class="output" style="max-height: 150px;">等待 SDK 加载...</div>
+      </div>
+
+      <!-- 获取会话列表 -->
+      <div class="card">
+        <h2>📋 getConversationsList</h2>
+        <div class="config-section">
+          <div class="form-group">
+            <label>User ID（可选）</label>
+            <input type="text" id="list-user-id" value="1CWtEwLmkL73kgMXKzXBdJ" placeholder="user-id">
+          </div>
+          <div class="form-group">
+            <label>App ID（可选）</label>
+            <input type="text" id="list-app-id" value="" placeholder="app-id">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label>Page</label>
+              <input type="number" id="list-page" value="1" min="1">
+            </div>
+            <div class="form-group">
+              <label>Page Size</label>
+              <input type="number" id="list-page-size" value="10" min="1" max="100">
+            </div>
+          </div>
+        </div>
+        <button id="get-conversations" disabled>获取会话列表</button>
+        <div id="list-output" class="output"></div>
+      </div>
+
+      <!-- 创建会话 -->
+      <div class="card">
+        <h2>➕ createConversation</h2>
+        <div class="config-section">
+          <div class="form-group">
+            <label>会话标题</label>
+            <input type="text" id="create-title" value="测试会话" placeholder="conversation title">
+          </div>
+          <div class="form-group">
+            <label>App ID（可选）</label>
+            <input type="text" id="create-app-id" value="app-1769501930216-489ca672" placeholder="app-id">
+          </div>
+          <div class="form-group">
+            <label>User ID</label>
+            <input type="text" id="create-user-id" value="1CWtEwLmkL73kgMXKzXBdJ" placeholder="user-id">
+          </div>
+        </div>
+        <button id="create-conversation" disabled>创建会话</button>
+        <div id="create-output" class="output"></div>
+      </div>
+
+      <!-- 删除会话 -->
+      <div class="card">
+        <h2>🗑️ deleteConversation</h2>
+        <div class="config-section">
+          <div class="form-group">
+            <label>Conversation ID（从创建结果复制）</label>
+            <input type="text" id="delete-conv-id" value="" placeholder="conversation-id">
+          </div>
+        </div>
+        <button id="delete-conversation" class="danger" disabled>删除会话</button>
+        <div id="delete-output" class="output"></div>
+      </div>
+
+      <!-- 获取应用和会话聚合数据 -->
+      <div class="card">
+        <h2>📱 getAppsWithConversationsList</h2>
+        <div class="config-section">
+          <div class="form-group">
+            <label>App ID（可选）</label>
+            <input type="text" id="apps-app-id" value="" placeholder="app-id（留空获取全部）">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label>Page</label>
+              <input type="number" id="apps-page" value="1" min="1">
+            </div>
+            <div class="form-group">
+              <label>Page Size</label>
+              <input type="number" id="apps-page-size" value="10" min="1" max="100">
+            </div>
+          </div>
+        </div>
+        <button id="get-apps" disabled>获取应用聚合数据</button>
+        <div id="apps-output" class="output"></div>
+      </div>
+
+      <!-- 获取消息列表 -->
+      <div class="card full-width">
+        <h2>💬 getMessagesList</h2>
+        <div class="config-section">
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label>Conversation ID（必填）</label>
+              <input type="text" id="messages-conv-id" value="" placeholder="conversation-id">
+            </div>
+            <div class="form-group">
+              <label>Page</label>
+              <input type="number" id="messages-page" value="1" min="1">
+            </div>
+            <div class="form-group">
+              <label>Page Size</label>
+              <input type="number" id="messages-page-size" value="50" min="1" max="100">
+            </div>
+          </div>
+        </div>
+        <button id="get-messages" disabled>获取消息列表</button>
+        <div id="messages-output" class="output"></div>
+      </div>
+
+      <!-- 一键测试 -->
+      <div class="card full-width">
+        <h2>🧪 一键测试（完整 CRUD 流程）</h2>
+        <div class="config-section">
+          <p>点击下方按钮将依次执行：创建会话 → 查询会话列表 → 删除会话</p>
+        </div>
+        <button id="run-full-test" disabled>运行完整测试</button>
+        <div id="test-output" class="output"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // ============================================
+    // 从本地构建的 NPM 包测试 SDK
+    // ============================================
+
+    let sdk = null;
+    let initConversationSdk = null;
+
+    // 辅助函数
+    function log(elementId, message, type = 'info') {
+      const output = document.getElementById(elementId);
+      const timestamp = new Date().toLocaleTimeString();
+      const typeEmoji = {
+        info: '📘',
+        success: '✅',
+        error: '❌',
+        warning: '⚠️'
+      };
+      const line = `[${timestamp}] ${typeEmoji[type]} ${message}`;
+      output.textContent = `${line}\n\n${output.textContent}`;
+      console.log(`[${elementId}] ${line}`);
+    }
+
+    function showStatus(elementId, message, type = 'info') {
+      const container = document.getElementById(elementId);
+      const statusDiv = document.createElement('div');
+      statusDiv.className = `status ${type}`;
+      statusDiv.textContent = message;
+      container.textContent = '';
+      container.appendChild(statusDiv);
+    }
+
+    function safeStringify(value) {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return String(value);
+      }
+    }
+
+    function normalizeAccessToken(raw) {
+      const text = String(raw || '').trim();
+      if (!text) return '';
+      return text.replace(/^Bearer\s+/i, '').trim();
+    }
+
+    /**
+     * 同源代理 fetch
+     */
+    async function proxyFetch(input, init) {
+      const url = typeof input === 'string' ? input : (input && input.url ? input.url : String(input));
+      if (url.startsWith('/') || url.startsWith(window.location.origin)) {
+        return fetch(input, init);
+      }
+      if (!/^https?:\/\//i.test(url)) {
+        return fetch(input, init);
+      }
+      
+      const allowedHeaders = ['authorization', 'content-type', 'accept', 'prefer'];
+      const filteredHeaders = {};
+      
+      if (init && init.headers) {
+        const headers = init.headers instanceof Headers 
+          ? Object.fromEntries(init.headers.entries())
+          : init.headers;
+        
+        for (const [key, value] of Object.entries(headers)) {
+          if (allowedHeaders.includes(key.toLowerCase())) {
+            filteredHeaders[key] = value;
+          }
+        }
+      }
+      
+      const proxied = `/_proxy?url=${encodeURIComponent(url)}`;
+      return fetch(proxied, {
+        ...init,
+        headers: filteredHeaders,
+      });
+    }
+
+    // 从 npm 包加载 SDK（优先本地，回退 CDN）
+    async function loadSdk() {
+      // 1. 优先尝试本地下载的 npm 包
+      try {
+        log('npm-output', '正在从本地 npm 包加载...', 'info');
+        const module = await import('./npm-package/package/dist/index.js');
+        
+        log('npm-output', `模块 keys: ${Object.keys(module).join(', ')}`, 'info');
+        
+        initConversationSdk = module.initConversationSdk;
+        
+        if (typeof initConversationSdk === 'function') {
+          log('npm-output', `✅ SDK 从本地 npm 包 (v0.2.3) 加载成功！`, 'success');
+          document.getElementById('init-sdk').disabled = false;
+          return true;
+        }
+      } catch (error) {
+        log('npm-output', `⚠️ 本地加载失败: ${error.message}`, 'warning');
+      }
+
+      // 2. 回退到 CDN
+      const timestamp = Date.now();
+      const cdnUrls = [
+        `https://esm.sh/@seaverse/conversation-sdk@0.2.3?t=${timestamp}`,
+        `https://cdn.jsdelivr.net/npm/@seaverse/conversation-sdk@0.2.3/dist/index.js`,
+        `https://unpkg.com/@seaverse/conversation-sdk@0.2.3/dist/index.js`,
+      ];
+
+      for (const url of cdnUrls) {
+        try {
+          log('npm-output', `正在从 CDN 加载: ${url}`, 'info');
+          
+          const module = await import(url);
+          
+          log('npm-output', `模块 keys: ${Object.keys(module).join(', ')}`, 'info');
+          
+          initConversationSdk = module.initConversationSdk 
+            || module.default?.initConversationSdk 
+            || module.default;
+          
+          if (typeof initConversationSdk === 'function') {
+            log('npm-output', `✅ SDK 从 CDN 加载成功！\n来源: ${url}`, 'success');
+            document.getElementById('init-sdk').disabled = false;
+            return true;
+          }
+          
+          log('npm-output', `⚠️ initConversationSdk 类型错误: ${typeof initConversationSdk}`, 'warning');
+        } catch (error) {
+          log('npm-output', `⚠️ CDN 加载失败: ${error.message}`, 'warning');
+        }
+      }
+
+      log('npm-output', '❌ 所有来源加载失败', 'error');
+      return false;
+    }
+
+    // 启用所有按钮
+    function enableAllButtons() {
+      document.getElementById('get-conversations').disabled = false;
+      document.getElementById('create-conversation').disabled = false;
+      document.getElementById('delete-conversation').disabled = false;
+      document.getElementById('get-apps').disabled = false;
+      document.getElementById('get-messages').disabled = false;
+      document.getElementById('run-full-test').disabled = false;
+    }
+
+    // 初始化 SDK
+    document.getElementById('init-sdk').addEventListener('click', async () => {
+      const environment = document.getElementById('sdk-environment').value;
+      const token = normalizeAccessToken(document.getElementById('sdk-token').value);
+
+      if (!token) {
+        showStatus('sdk-status', '请填写 Access Token', 'error');
+        return;
+      }
+
+      try {
+        showStatus('sdk-status', '正在初始化 SDK...', 'info');
+
+        sdk = initConversationSdk({
+          environment,
+          token,
+          fetch: proxyFetch,
+        });
+
+        showStatus('sdk-status', '✅ SDK 初始化成功', 'success');
+        enableAllButtons();
+        
+        log('npm-output', `SDK 已初始化 (环境: ${environment})`, 'success');
+      } catch (error) {
+        showStatus('sdk-status', `❌ 初始化失败: ${error.message}`, 'error');
+        console.error('初始化错误:', error);
+      }
+    });
+
+    // 获取会话列表
+    document.getElementById('get-conversations').addEventListener('click', async () => {
+      if (!sdk) return;
+
+      const userId = document.getElementById('list-user-id').value.trim();
+      const appId = document.getElementById('list-app-id').value.trim();
+      const page = Math.max(1, Number(document.getElementById('list-page').value || 1));
+      const pageSize = Math.max(1, Number(document.getElementById('list-page-size').value || 10));
+
+      try {
+        log('list-output', '正在获取会话列表...', 'info');
+
+        const result = await sdk.getConversationsList({
+          userId: userId || undefined,
+          appId: appId || undefined,
+          page,
+          pageSize,
+        });
+
+        log(
+          'list-output',
+          `✅ 获取成功\ncount: ${result.data?.length ?? 0}\npagination: ${safeStringify(result.pagination)}\n\ndata:\n${safeStringify(result.data).slice(0, 3000)}`,
+          'success'
+        );
+      } catch (error) {
+        log('list-output', `❌ 获取失败: ${error.message}`, 'error');
+        console.error('获取会话列表错误:', error);
+      }
+    });
+
+    // 创建会话
+    document.getElementById('create-conversation').addEventListener('click', async () => {
+      if (!sdk) return;
+
+      const title = document.getElementById('create-title').value.trim();
+      const appId = document.getElementById('create-app-id').value.trim();
+      const userId = document.getElementById('create-user-id').value.trim();
+
+      if (!title) {
+        log('create-output', '请输入会话标题', 'error');
+        return;
+      }
+
+      try {
+        log('create-output', '正在创建会话...', 'info');
+
+        const result = await sdk.createConversation({
+          title,
+          appId: appId || null,
+          userId,
+        });
+
+        // 自动填充到删除输入框
+        document.getElementById('delete-conv-id').value = result.conversation_id;
+        document.getElementById('messages-conv-id').value = result.conversation_id;
+
+        log(
+          'create-output',
+          `✅ 创建成功\nconversation_id: ${result.conversation_id}\ntitle: ${result.title}\n\n${safeStringify(result)}`,
+          'success'
+        );
+      } catch (error) {
+        log('create-output', `❌ 创建失败: ${error.message}`, 'error');
+        console.error('创建会话错误:', error);
+      }
+    });
+
+    // 删除会话
+    document.getElementById('delete-conversation').addEventListener('click', async () => {
+      if (!sdk) return;
+
+      const conversationId = document.getElementById('delete-conv-id').value.trim();
+
+      if (!conversationId) {
+        log('delete-output', '请输入 Conversation ID', 'error');
+        return;
+      }
+
+      try {
+        log('delete-output', `正在删除会话 ${conversationId}...`, 'info');
+
+        await sdk.deleteConversation(conversationId);
+
+        log('delete-output', `✅ 删除成功\n已删除: ${conversationId}`, 'success');
+        
+        // 清空输入框
+        document.getElementById('delete-conv-id').value = '';
+      } catch (error) {
+        log('delete-output', `❌ 删除失败: ${error.message}`, 'error');
+        console.error('删除会话错误:', error);
+      }
+    });
+
+    // 获取应用聚合数据
+    document.getElementById('get-apps').addEventListener('click', async () => {
+      if (!sdk) return;
+
+      const appId = document.getElementById('apps-app-id').value.trim();
+      const page = Math.max(1, Number(document.getElementById('apps-page').value || 1));
+      const pageSize = Math.max(1, Number(document.getElementById('apps-page-size').value || 10));
+
+      try {
+        log('apps-output', '正在获取应用聚合数据...', 'info');
+
+        const result = await sdk.getAppsWithConversationsList({
+          appId: appId || undefined,
+          page,
+          pageSize,
+        });
+
+        log(
+          'apps-output',
+          `✅ 获取成功\napps: ${result.apps?.length ?? 0}\nhasMore: ${result.hasMore}\n\n${safeStringify(result).slice(0, 5000)}`,
+          'success'
+        );
+      } catch (error) {
+        log('apps-output', `❌ 获取失败: ${error.message}`, 'error');
+        console.error('获取应用聚合数据错误:', error);
+      }
+    });
+
+    // 获取消息列表
+    document.getElementById('get-messages').addEventListener('click', async () => {
+      if (!sdk) return;
+
+      const conversationId = document.getElementById('messages-conv-id').value.trim();
+      const page = Math.max(1, Number(document.getElementById('messages-page').value || 1));
+      const pageSize = Math.max(1, Number(document.getElementById('messages-page-size').value || 50));
+
+      if (!conversationId) {
+        log('messages-output', '请输入 Conversation ID', 'error');
+        return;
+      }
+
+      try {
+        log('messages-output', `正在获取会话 ${conversationId} 的消息列表...`, 'info');
+
+        const result = await sdk.getMessagesList(conversationId, {
+          page,
+          pageSize,
+        });
+
+        log(
+          'messages-output',
+          `✅ 获取成功\nmessages: ${result.messages?.length ?? 0}\nhasMore: ${result.hasMore}\n\n${safeStringify(result).slice(0, 5000)}`,
+          'success'
+        );
+      } catch (error) {
+        log('messages-output', `❌ 获取失败: ${error.message}`, 'error');
+        console.error('获取消息列表错误:', error);
+      }
+    });
+
+    // 一键测试
+    document.getElementById('run-full-test').addEventListener('click', async () => {
+      if (!sdk) return;
+
+      const userId = document.getElementById('create-user-id').value.trim();
+      const appId = document.getElementById('create-app-id').value.trim();
+
+      try {
+        log('test-output', '========== 开始完整测试 ==========', 'info');
+
+        // 1. 创建会话
+        log('test-output', '步骤 1: 创建会话...', 'info');
+        const created = await sdk.createConversation({
+          title: `测试会话 ${Date.now()}`,
+          appId: appId || null,
+          userId,
+        });
+        log('test-output', `✅ 创建成功: ${created.conversation_id}`, 'success');
+
+        // 2. 查询会话列表
+        log('test-output', '步骤 2: 查询会话列表...', 'info');
+        const list = await sdk.getConversationsList({
+          userId,
+          page: 1,
+          pageSize: 5,
+        });
+        log('test-output', `✅ 查询成功: 共 ${list.data.length} 条记录`, 'success');
+
+        // 验证新创建的会话在列表中
+        const found = list.data.find(c => c.id === created.conversation_id);
+        if (found) {
+          log('test-output', `✅ 验证成功: 新会话存在于列表中`, 'success');
+        } else {
+          log('test-output', `⚠️ 验证警告: 新会话未在列表中找到（可能是分页原因）`, 'warning');
+        }
+
+        // 3. 获取应用聚合数据
+        log('test-output', '步骤 3: 获取应用聚合数据...', 'info');
+        const apps = await sdk.getAppsWithConversationsList({
+          page: 1,
+          pageSize: 5,
+        });
+        log('test-output', `✅ 获取成功: 共 ${apps.apps.length} 个应用`, 'success');
+
+        // 4. 删除会话
+        log('test-output', '步骤 4: 删除会话...', 'info');
+        await sdk.deleteConversation(created.conversation_id);
+        log('test-output', `✅ 删除成功: ${created.conversation_id}`, 'success');
+
+        // 5. 验证删除
+        log('test-output', '步骤 5: 验证删除...', 'info');
+        const listAfterDelete = await sdk.getConversationsList({
+          userId,
+          page: 1,
+          pageSize: 100,
+        });
+        const stillExists = listAfterDelete.data.find(c => c.id === created.conversation_id);
+        if (!stillExists) {
+          log('test-output', `✅ 验证成功: 会话已被删除`, 'success');
+        } else {
+          log('test-output', `❌ 验证失败: 会话仍然存在`, 'error');
+        }
+
+        log('test-output', '========== 完整测试通过 ==========', 'success');
+      } catch (error) {
+        log('test-output', `❌ 测试失败: ${error.message}\n${error.stack || ''}`, 'error');
+        console.error('完整测试错误:', error);
+      }
+    });
+
+    // 页面加载时自动加载 SDK
+    loadSdk();
+
+    console.log('SeaLink SDK 测试平台 (NPM v0.2.3 远端测试) 已加载');
+  </script>
+</body>
+</html>

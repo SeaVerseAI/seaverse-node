@@ -10,10 +10,13 @@ export type { ConversationClientConfig } from './types/config.types.js';
 export type {
   // 对话相关
   Conversation,
+  ConversationResponse,
   // 消息相关
   Message,
   ToolCall,
 } from './types/index.js';
+
+export type { CreateConversationData } from './resources/ConversationsResource.js';
 
 // ═══════════════════════════════════════
 // 错误类型（供错误处理使用）
