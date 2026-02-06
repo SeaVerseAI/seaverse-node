@@ -8,10 +8,27 @@ import { DbClient } from './data/DbClient.js';
 import type { ConversationClientConfig } from './types/config.types.js';
 import { getEnvironmentConfig } from './client/EnvironmentConfig.js';
 import { listAppsWithConversations } from './aggregated/apps-with-conversations.js';
-import type { ListAppsWithConversationsResult, Message, ConversationResponse, Conversation } from './types/index.js';
-import type { PaginatedResult } from './types/pagination.types.js';
+import { getUrlSessionToken } from './session/session-token.js';
+import type { App, ListAppsWithConversationsResult, Message, ConversationResponse, Conversation } from './types/index.js';
 import { MessagesResource } from './resources/MessagesResource.js';
 import { ConversationsResource, type CreateConversationData, type ListConversationsOptions } from './resources/ConversationsResource.js';
+import { AppsResource, type ListAppsOptions } from './resources/AppsResource.js';
+
+/**
+ * 列表查询结果（统一返回格式）
+ */
+export interface ListResult<T> {
+  data: T[];
+  hasMore: boolean;
+}
+
+/**
+ * 会话列表查询结果（附带 url_session_token）
+ */
+export interface ConversationsListResult extends ListResult<Conversation> {
+  /** PostgREST url_session_token，通过缓存获取（不会每次都请求 auth 服务） */
+  url_session_token: string | null;
+}
 
 /**
  * 初始化 Conversation SDK
@@ -40,14 +57,47 @@ export function initConversationSdk(config: ConversationClientConfig) {
   const db = new DbClient(http);
   const messagesResource = new MessagesResource(db);
   const conversationsResource = new ConversationsResource(db, fullConfig.getToken, fullConfig.urls.auth);
+  const appsResource = new AppsResource(db);
+
+  /**
+   * 获取应用列表（带分页）
+   *
+   * 仅查询 apps 表，不触发 url-session/generate 请求。
+   * 当只需要应用列表数据时，使用此方法代替 getAppsWithConversationsList。
+   */
+  async function getAppsList(
+    options?: ListAppsOptions
+  ): Promise<ListResult<App>> {
+    const result = await appsResource.list(options);
+    return {
+      data: result.data,
+      hasMore: result.pagination.hasNextPage,
+    };
+  }
 
   /**
    * 获取会话列表（带分页）
+   *
+   * 仅查询 conversations 表，不触发 apps 查询。
+   * 附带 url_session_token（通过缓存获取，不会每次都请求 auth 服务）。
    */
   async function getConversationsList(
     options?: ListConversationsOptions
-  ): Promise<PaginatedResult<Conversation>> {
-    return conversationsResource.list(options);
+  ): Promise<ConversationsListResult> {
+    // 并行获取会话列表和 url_session_token（token 有缓存，通常直接返回）
+    const [result, urlSessionToken] = await Promise.all([
+      conversationsResource.list(options),
+      getUrlSessionToken({
+        accessToken: (await fullConfig.getToken()) || '',
+        authBaseUrl: fullConfig.urls.auth,
+      }),
+    ]);
+
+    return {
+      data: result.data,
+      hasMore: result.pagination.hasNextPage,
+      url_session_token: urlSessionToken,
+    };
   }
 
   /**
@@ -104,6 +154,7 @@ export function initConversationSdk(config: ConversationClientConfig) {
   }
 
   return {
+    getAppsList,
     getConversationsList,
     getAppsWithConversationsList,
     getMessagesList,

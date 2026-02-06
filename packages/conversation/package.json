@@ -1,6 +1,6 @@
 {
   "name": "@seaverse/conversation-sdk",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "description": "SeaVerse Conversation SDK - SDK for conversations and messages management",
   "type": "module",
   "main": "./dist/index.js",
@@ -17,9 +17,9 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b --force",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist tsconfig.tsbuildinfo"
   },
   "keywords": [
     "seaverse",

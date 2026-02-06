@@ -50,7 +50,9 @@ export interface ListAppsWithConversationsConfig {
 
 /**
  * List apps with their conversations (aggregated query)
- * Returns ALL conversations for each app, sorted by updated_at descending (newest first).
+ * Returns conversations for each app, sorted by updated_at descending (newest first).
+ *
+ * 仅查询当前分页内 apps 对应的 conversations，避免全量拉取。
  *
  * Replaces `/api/apps/with-conversations` endpoint
  *
@@ -75,22 +77,14 @@ export async function listAppsWithConversations(
   // Calculate pagination params
   const { limit, offset } = pageToOffset(page, pageSize);
 
-  // Parallel requests to avoid waterfall (including url_session_token)
-  const [dbApps, dbConversations, urlSessionToken] = await Promise.all([
+  // Step 1: 并行获取 apps 列表和 url_session_token
+  const [dbApps, urlSessionToken] = await Promise.all([
     // Get apps with pagination, sorted by created_at descending
     db.get<DbSchema.App>(
       'apps',
       appId
         ? { filter: { app_id: `eq.${appId}` }, order: 'created_at.desc', limit, offset, count: 'exact' }
         : { order: 'created_at.desc', limit, offset, count: 'exact' }
-    ),
-
-    // Get conversations (all conversations), sorted by updated_at descending
-    db.get<DbSchema.Conversation>(
-      'conversations',
-      appId
-        ? { filter: { app_id: `eq.${appId}` }, order: 'updated_at.desc' }
-        : { order: 'updated_at.desc' }
     ),
 
     // Get URL session token from auth service
@@ -100,24 +94,40 @@ export async function listAppsWithConversations(
     }),
   ]);
 
-  // Group conversations by appId and include ALL conversations
-  // Conversations are already sorted by updated_at.desc from database query
-  const conversationsByAppId = new Map<string, Conversation[]>();
+  // Step 2: 根据分页后的 app IDs 查询对应的 conversations（避免全量拉取）
+  const appIds = dbApps.data.map((app) => (app.app_id || app.id) as string);
 
-  for (const dbConv of dbConversations.data) {
-    // Don't pass urlSessionToken - it will be returned at top level
-    const conv = transformConversation(dbConv);
+  let conversationsByAppId = new Map<string, Conversation[]>();
 
-    // Only process conversations with appId (skip global conversations)
-    if (conv.appId) {
-      if (!conversationsByAppId.has(conv.appId)) {
-        conversationsByAppId.set(conv.appId, []);
+  if (appIds.length > 0) {
+    // 每个 app 最多返回 50 条会话，总 limit = appIds 数量 × 50
+    // 避免 PostgREST 默认 max-rows (500) 导致全量返回
+    const conversationsLimit = Math.max(appIds.length * 50, 100);
+
+    const dbConversations = await db.get<DbSchema.Conversation>(
+      'conversations',
+      {
+        filter: { app_id: `in.(${appIds.join(',')})` },
+        order: 'updated_at.desc',
+        limit: conversationsLimit,
       }
-      conversationsByAppId.get(conv.appId)!.push(conv);
+    );
+
+    // Group conversations by appId
+    // Conversations are already sorted by updated_at.desc from database query
+    for (const dbConv of dbConversations.data) {
+      const conv = transformConversation(dbConv);
+
+      if (conv.appId) {
+        if (!conversationsByAppId.has(conv.appId)) {
+          conversationsByAppId.set(conv.appId, []);
+        }
+        conversationsByAppId.get(conv.appId)!.push(conv);
+      }
     }
   }
 
-  // Build response (each app has ALL conversations sorted by updatedAt)
+  // Build response (each app has its conversations sorted by updatedAt)
   const appsWithConversations: AppWithConversations[] = dbApps.data.map((dbApp) => {
     const appId = (dbApp.app_id || dbApp.id) as string;
     const conversations = conversationsByAppId.get(appId) || [];
