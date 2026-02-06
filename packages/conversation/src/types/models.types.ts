@@ -44,7 +44,45 @@ export interface ToolCall {
 }
 
 /**
+ * 媒体资源（API 格式：{ images, audios, videos }）
+ * 前端 normalizeMedia 会将其转换为 MediaItem[] 格式
+ */
+export interface MessageMedia {
+  images?: string[];
+  audios?: string[];
+  videos?: string[];
+}
+
+/**
+ * 待办事项
+ */
+export interface TodoItem {
+  id: string;
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | string;
+}
+
+/**
+ * 消息附件
+ */
+export interface MessageAttachment {
+  type: 'image' | 'document' | string;
+  media_type?: string;
+  file_id?: string;
+  filename?: string;
+  url?: string;
+  size?: number;
+  path?: string;
+}
+
+/**
  * 消息模型（兼容旧 API 格式）
+ *
+ * 采用「全量透传」策略，完全对齐 runtime-plugins/conversations getMessages 行为：
+ * content 中的 JSON 对象会被整体展开，所有字段都保留。
+ *
+ * 下方显式声明的是已知字段（提供类型安全和 IDE 提示），
+ * 索引签名 [key: string] 允许透传未来新增的未知字段。
  */
 export interface Message {
   id: string;
@@ -53,10 +91,20 @@ export interface Message {
   role?: 'user' | 'assistant' | 'system';  // 可选，tips 消息无 role
   content?: string;         // 可选，tips 消息不返回 content
   timestamp: number;        // 秒时间戳（旧 API 格式）
-  type?: 'text' | 'conversation_tips' | string;  // 消息类型
+  type?: 'text' | 'media' | 'conversation_tips' | 'app_creation_detected' | string;  // 消息类型
   tips?: string[];          // 用于 type='conversation_tips'
   toolCalls?: ToolCall[];   // 用于包含工具调用的消息
-  // metadata 字段不返回给前端（旧 API 格式）
+  media?: MessageMedia;     // 媒体资源（图片/音频/视频）
+  todos?: TodoItem[];       // 待办事项列表
+  attachments?: MessageAttachment[];  // 文件附件
+  metadata_json?: string | null;      // 元数据 JSON（用于去重判断等）
+  // app_creation_detected 类型专用字段
+  app_id?: string;
+  app_name?: string;
+  app_description?: string;
+
+  /** 索引签名：允许透传 content JSON 中的未知字段 */
+  [key: string]: unknown;
 }
 
 /**
@@ -122,6 +170,7 @@ export namespace DbSchema {
     content: string;
     created_at: number;  // 秒时间戳
     metadata?: unknown;
+    metadata_json?: string | null;  // 元数据 JSON 字符串（如 frontend_formatted 标记）
   }
 
   export interface App {

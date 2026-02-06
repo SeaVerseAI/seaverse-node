@@ -12,119 +12,130 @@ function toSeconds(seconds: number): number {
 
 /**
  * 转换数据库消息对象为前端模型
+ *
+ * 完全对齐 runtime-plugins/conversations getMessages 的「全量透传」行为：
+ *   - content 是合法 JSON 对象 → 直接展开整个 JSON，再用确定性字段覆盖
+ *   - content 不是 JSON → 返回 { id, role, content, timestamp } 基础结构
+ *
+ * 额外增强（SDK 比 runtime-plugins 多做的部分）：
+ *   - 透传 metadata_json（数据库列），用于前端 isDuplicateMessage 去重
+ *   - 从 metadata（JSONB 列）中补充缺失字段（作为 fallback）
+ *   - conversation_tips 类型自动注入 conversation_id
+ *
+ * @see runtime-plugins/conversations/src/handlers/messages.ts getMessages()
  */
 export function transformMessage(dbMsg: DbSchema.Message): Message {
   // 获取消息 ID（兼容 message_id 和 id 字段）
   const dbId = dbMsg.message_id || dbMsg.id || '';
-  
-  // 解析 content 字段（可能是 JSON 字符串）
-  let parsedContent: any = null;
-  let actualContent = dbMsg.content;
-  let actualRole = dbMsg.role;
-  let actualId = dbId;
+
+  // ================================================================
+  // 1. 尝试将 content 解析为 JSON（对齐 runtime-plugins 行为）
+  // ================================================================
+  let parsedContent: Record<string, any> | null = null;
 
   try {
-    // 尝试解析 content 为 JSON（如果它是 JSON 字符串）
     if (typeof dbMsg.content === 'string' && dbMsg.content.trim().startsWith('{')) {
-      parsedContent = JSON.parse(dbMsg.content);
-      
-      // 如果解析成功，使用解析后的内容
-      if (parsedContent && typeof parsedContent === 'object') {
-        // 优先使用解析后的字段
-        if (parsedContent.content !== undefined) {
-          actualContent = parsedContent.content;
-        }
-        if (parsedContent.role !== undefined) {
-          actualRole = parsedContent.role;
-        }
-        if (parsedContent.id !== undefined) {
-          actualId = parsedContent.id;
-        }
+      const json = JSON.parse(dbMsg.content);
+      // 仅在结果是普通对象时使用（与 runtime-plugins 一致：排除数组和原始类型）
+      if (json && typeof json === 'object' && !Array.isArray(json)) {
+        parsedContent = json;
       }
     }
   } catch {
-    // 解析失败，使用原始 content
+    // 解析失败，走 fallback 路径
   }
 
-  // 基础字段 - 不包含 conversationId
-  const base: Partial<Message> & { id: string; timestamp: number } = {
-    id: actualId,
-    role: actualRole,
-    content: actualContent,
-    timestamp: toSeconds(dbMsg.created_at),
-  };
+  // ================================================================
+  // 2. 构建消息对象
+  // ================================================================
+  let result: Record<string, any>;
 
-  // 解析 metadata 中的扩展字段，或从解析后的 content 中提取
-  let meta: any = dbMsg.metadata;
-
-  // 如果 content 被解析了，优先使用解析后的数据
   if (parsedContent) {
-    // 提取 type（消息类型）
-    if (parsedContent.type) {
-      base.type = parsedContent.type;
+    // ── JSON content 路径（全量透传） ──
+    // 先展开整个 parsedContent，保留所有字段（含未来新增的未知字段）
+    // 再用确定性字段覆盖，确保 id / timestamp 取值正确
+    result = {
+      ...parsedContent,
+      // id: parsedContent 中的 id 优先，否则用 DB 的 message_id/id
+      id: parsedContent.id ?? dbId,
+      // role: parsedContent 中的 role 优先，否则用 DB 的 role
+      role: parsedContent.role ?? dbMsg.role,
+      // content: parsedContent 中的 content 优先，否则保持原始 DB content
+      // 注意：parsedContent.content 可能为空字符串（合法值），所以用 ?? 而非 ||
+      content: parsedContent.content ?? dbMsg.content,
+      // timestamp: 始终用 DB 的 created_at（秒级），保持一致
+      timestamp: toSeconds(dbMsg.created_at),
+    };
+  } else {
+    // ── Fallback 路径（纯文本 content） ──
+    // 与 runtime-plugins 的 catch/fallback 分支完全一致
+    result = {
+      id: dbId,
+      role: dbMsg.role,
+      content: dbMsg.content,
+      timestamp: toSeconds(dbMsg.created_at),
+    };
+  }
 
-      // 对于 conversation_tips 类型，添加 conversation_id 字段
-      if (parsedContent.type === 'conversation_tips') {
-        (base as any).conversation_id = dbMsg.conversation_id;
+  // ================================================================
+  // 3. 从 metadata（JSONB 列）中补充缺失字段
+  //    runtime-plugins 不做这一步，但 SDK 做 fallback 以覆盖更多场景
+  // ================================================================
+  const meta: any = dbMsg.metadata;
+  if (meta && typeof meta === 'object') {
+    // 遍历 metadata 的所有字段，仅补充 result 中不存在的
+    for (const key of Object.keys(meta)) {
+      if (result[key] === undefined || result[key] === null) {
+        result[key] = meta[key];
       }
-    }
-
-    // 提取 tips（用于 conversation_tips 类型）
-    if (parsedContent.tips && Array.isArray(parsedContent.tips)) {
-      base.tips = parsedContent.tips;
-      // 确保 tips 消息有 conversation_id
-      (base as any).conversation_id = dbMsg.conversation_id;
-      // tips 消息不返回 content 字段
-      delete base.content;
-    }
-
-    // 提取 toolCalls（工具调用信息）
-    if (parsedContent.toolCalls && Array.isArray(parsedContent.toolCalls)) {
-      base.toolCalls = parsedContent.toolCalls;
     }
   }
 
-  // 如果 metadata 存在，也尝试从中提取字段
-  if (meta) {
-    // 如果还没有设置 type，从 metadata 中提取
-    if (!base.type && meta.type) {
-      base.type = meta.type;
+  // ================================================================
+  // 4. 特殊类型处理
+  // ================================================================
 
-      // 对于 conversation_tips 类型，添加 conversation_id 字段
-      if (meta.type === 'conversation_tips') {
-        (base as any).conversation_id = dbMsg.conversation_id;
-      }
+  // conversation_tips 类型：注入 conversation_id，移除 content
+  if (result.type === 'conversation_tips') {
+    result.conversation_id = dbMsg.conversation_id;
+    if (result.tips && Array.isArray(result.tips)) {
+      delete result.content;
     }
-
-    // 如果还没有设置 tips，从 metadata 中提取
-    if (!base.tips && meta.tips && Array.isArray(meta.tips)) {
-      base.tips = meta.tips;
-      // 确保 tips 消息有 conversation_id
-      (base as any).conversation_id = dbMsg.conversation_id;
-      // tips 消息不返回 content 字段
-      delete base.content;
-    }
-
-    // 如果还没有设置 toolCalls，从 metadata 中提取
-    if (!base.toolCalls && meta.toolCalls && Array.isArray(meta.toolCalls)) {
-      base.toolCalls = meta.toolCalls;
-    }
-
-    // 不保留 metadata 字段（旧 API 格式）
   }
 
-  return base as Message;
+  // toolCalls / tool_calls 兼容：确保 toolCalls 字段存在
+  if (!result.toolCalls && result.tool_calls) {
+    result.toolCalls = result.tool_calls;
+  }
+
+  // ================================================================
+  // 5. 透传 metadata_json（DB 列，用于前端 isDuplicateMessage 去重）
+  //    runtime-plugins 不返回此字段，SDK 增强
+  // ================================================================
+  if (dbMsg.metadata_json !== undefined) {
+    result.metadata_json = dbMsg.metadata_json;
+  }
+
+  return result as Message;
 }
 
 /**
  * 转换前端消息对象为数据库格式
+ *
+ * 接受任意包含消息字段的对象，从中提取数据库需要的字段
  */
-export function toDbMessage(msg: Partial<Message> & { metadata?: Record<string, unknown> }): Partial<DbSchema.Message> {
+export function toDbMessage(msg: {
+  id?: string;
+  conversationId?: string;
+  role?: string;
+  content?: string;
+  metadata?: Record<string, unknown>;
+}): Partial<DbSchema.Message> {
   const result: Partial<DbSchema.Message> = {};
 
   if (msg.id) result.id = msg.id;
   if (msg.conversationId) result.conversation_id = msg.conversationId;
-  if (msg.role) result.role = msg.role;
+  if (msg.role) result.role = msg.role as DbSchema.Message['role'];
   if (msg.content) result.content = msg.content;
   if (msg.metadata) result.metadata = msg.metadata;
 

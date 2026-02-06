@@ -115,16 +115,18 @@ export class MessagesResource {
    * 去重媒体消息
    * 如果两条消息具有相同的 role、content、timestamp 和 media 内容，只保留第一条
    *
-   * 参考 runtime-plugins/conversations/src/handlers/messages.ts
+   * 对齐 runtime-plugins/conversations/src/handlers/messages.ts 的去重逻辑：
+   * 直接检查消息顶层的 type 和 media 字段（而非 metadata）
    */
   private deduplicateMediaMessages(messages: Message[]): Message[] {
     const result: Message[] = [];
     const seenMedia = new Set<string>();
 
     for (const msg of messages) {
-      // 检查消息的 metadata 中是否包含 media 字段（需要通过 any 类型访问）
-      const metadata = (msg as any).metadata;
-      const hasMedia = metadata?.type === 'media' && metadata?.media;
+      // 检查消息是否是 media 类型且包含 media 数据
+      // 对齐 runtime-plugins 的逻辑：检查 msg.type === 'media' && msg.media
+      const isMediaType = msg.type === 'media';
+      const hasMedia = isMediaType && msg.media;
 
       if (hasMedia) {
         // 创建去重键（基于 content、role、timestamp 和 media）
@@ -132,7 +134,7 @@ export class MessagesResource {
           msg.content || '',
           msg.role || 'unknown',
           msg.timestamp,
-          metadata.media
+          msg.media!
         );
 
         // 如果已经见过这个媒体内容，跳过

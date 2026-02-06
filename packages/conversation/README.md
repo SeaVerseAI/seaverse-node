@@ -282,15 +282,28 @@ interface ConversationResponse {
 
 ### Message
 
+消息模型采用「全量透传」策略，完全对齐 `runtime-plugins/conversations` 的 `getMessages` 返回结构。
+当 `content` 是 JSON 对象时，其所有字段都会被展开透传；下方列出的是已知字段，未知字段也会保留。
+
 ```typescript
 interface Message {
   id: string;
-  role?: 'user' | 'assistant' | 'system';  // tips messages don't have role
-  content?: string;                         // tips messages don't return this field
+  role?: 'user' | 'assistant' | 'system';
+  content?: string;
   timestamp: number;                        // Unix timestamp in seconds
-  type?: 'text' | 'conversation_tips' | string;
-  tips?: string[];                          // Specific to conversation_tips type
-  toolCalls?: ToolCall[];                   // Tool call information
+  type?: 'text' | 'media' | 'conversation_tips' | 'app_creation_detected' | string;
+  tips?: string[];                          // conversation_tips 类型专用
+  toolCalls?: ToolCall[];                   // 工具调用信息
+  media?: MessageMedia;                     // 媒体资源（图片/音频/视频）
+  todos?: TodoItem[];                       // 待办事项列表
+  attachments?: MessageAttachment[];        // 文件附件
+  metadata_json?: string | null;            // 元数据 JSON（用于去重判断等）
+  // app_creation_detected 类型专用
+  app_id?: string;
+  app_name?: string;
+  app_description?: string;
+  // 索引签名：允许透传 content JSON 中的未知字段
+  [key: string]: unknown;
 }
 ```
 
@@ -303,6 +316,56 @@ interface Message {
   type: "conversation_tips";
   tips: string[];
   // Note: tips messages don't have content and role fields
+}
+```
+
+**Media Message Format**:
+```typescript
+{
+  id: string;
+  role: "assistant";
+  content: "";
+  timestamp: number;
+  type: "media";
+  media: {
+    images?: string[];
+    audios?: string[];
+    videos?: string[];
+  }
+}
+```
+
+### MessageMedia
+
+```typescript
+interface MessageMedia {
+  images?: string[];
+  audios?: string[];
+  videos?: string[];
+}
+```
+
+### TodoItem
+
+```typescript
+interface TodoItem {
+  id: string;
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | string;
+}
+```
+
+### MessageAttachment
+
+```typescript
+interface MessageAttachment {
+  type: 'image' | 'document' | string;
+  media_type?: string;
+  file_id?: string;
+  filename?: string;
+  url?: string;
+  size?: number;
+  path?: string;
 }
 ```
 
@@ -426,10 +489,21 @@ if (conversationId) {
 
   // Handle different message types
   messagesResult.messages.forEach(msg => {
-    if (msg.type === 'conversation_tips') {
-      console.log('Tips:', msg.tips);
-    } else {
-      console.log('Message:', msg.content);
+    switch (msg.type) {
+      case 'conversation_tips':
+        console.log('Tips:', msg.tips);
+        break;
+      case 'media':
+        console.log('Media:', msg.media);   // { images, audios, videos }
+        break;
+      case 'app_creation_detected':
+        console.log('App created:', msg.app_id, msg.app_name);
+        break;
+      default:
+        console.log('Message:', msg.content);
+        if (msg.toolCalls) console.log('Tool calls:', msg.toolCalls);
+        if (msg.todos) console.log('Todos:', msg.todos);
+        if (msg.attachments) console.log('Attachments:', msg.attachments);
     }
   });
 }

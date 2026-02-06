@@ -13,6 +13,9 @@ export type {
   ConversationResponse,
   // 消息相关
   Message,
+  MessageMedia,
+  MessageAttachment,
+  TodoItem,
   ToolCall,
 } from './types/index.js';
 
