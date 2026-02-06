@@ -97,7 +97,7 @@ export interface Message {
   media?: MessageMedia;     // 媒体资源（图片/音频/视频）
   todos?: TodoItem[];       // 待办事项列表
   attachments?: MessageAttachment[];  // 文件附件
-  metadata_json?: string | null;      // 元数据 JSON（用于去重判断等）
+  // 注意：不透传 metadata_json，与 runtime-plugins 行为一致
   // app_creation_detected 类型专用字段
   app_id?: string;
   app_name?: string;
@@ -170,7 +170,6 @@ export namespace DbSchema {
     content: string;
     created_at: number;  // 秒时间戳
     metadata?: unknown;
-    metadata_json?: string | null;  // 元数据 JSON 字符串（如 frontend_formatted 标记）
   }
 
   export interface App {

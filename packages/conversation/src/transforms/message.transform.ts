@@ -18,9 +18,12 @@ function toSeconds(seconds: number): number {
  *   - content 不是 JSON → 返回 { id, role, content, timestamp } 基础结构
  *
  * 额外增强（SDK 比 runtime-plugins 多做的部分）：
- *   - 透传 metadata_json（数据库列），用于前端 isDuplicateMessage 去重
  *   - 从 metadata（JSONB 列）中补充缺失字段（作为 fallback）
  *   - conversation_tips 类型自动注入 conversation_id
+ *
+ * 注意：不透传 metadata_json 字段。runtime-plugins 也不返回该字段。
+ * 如果透传，前端 isDuplicateMessage 会把所有 frontend_formatted=true 的消息
+ * 全部过滤掉，导致只剩用户消息。
  *
  * @see runtime-plugins/conversations/src/handlers/messages.ts getMessages()
  */
@@ -109,12 +112,11 @@ export function transformMessage(dbMsg: DbSchema.Message): Message {
   }
 
   // ================================================================
-  // 5. 透传 metadata_json（DB 列，用于前端 isDuplicateMessage 去重）
-  //    runtime-plugins 不返回此字段，SDK 增强
+  // 5. 不透传 metadata_json（与 runtime-plugins 行为一致）
+  //    前端 isDuplicateMessage 会根据 metadata_json 中的 frontend_formatted
+  //    标记过滤消息。DB 中所有被前端保存的消息都有此标记，如果透传会导致
+  //    所有 assistant 消息被过滤，只剩 user 消息。
   // ================================================================
-  if (dbMsg.metadata_json !== undefined) {
-    result.metadata_json = dbMsg.metadata_json;
-  }
 
   return result as Message;
 }

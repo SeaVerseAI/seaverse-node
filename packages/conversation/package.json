@@ -1,6 +1,6 @@
 {
   "name": "@seaverse/conversation-sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "SeaVerse Conversation SDK - SDK for conversations and messages management",
   "type": "module",
   "main": "./dist/index.js",

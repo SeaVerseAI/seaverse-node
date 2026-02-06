@@ -297,7 +297,6 @@ interface Message {
   media?: MessageMedia;                     // 媒体资源（图片/音频/视频）
   todos?: TodoItem[];                       // 待办事项列表
   attachments?: MessageAttachment[];        // 文件附件
-  metadata_json?: string | null;            // 元数据 JSON（用于去重判断等）
   // app_creation_detected 类型专用
   app_id?: string;
   app_name?: string;
