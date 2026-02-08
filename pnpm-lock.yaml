@@ -34,59 +34,7 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
 
-  packages/core-common:
-    devDependencies:
-      typescript:
-        specifier: ^5.3.0
-        version: 5.9.3
-
-  packages/core-transport:
-    dependencies:
-      '@sealink/core-common':
-        specifier: workspace:*
-        version: link:../core-common
-    devDependencies:
-      typescript:
-        specifier: ^5.3.0
-        version: 5.9.3
-
-  packages/data-postgrest:
-    dependencies:
-      '@sealink/core-common':
-        specifier: workspace:*
-        version: link:../core-common
-      '@sealink/core-transport':
-        specifier: workspace:*
-        version: link:../core-transport
-    devDependencies:
-      typescript:
-        specifier: ^5.3.0
-        version: 5.9.3
-
-  packages/runtime-conversations:
-    dependencies:
-      '@sealink/core-common':
-        specifier: workspace:*
-        version: link:../core-common
-      '@sealink/core-transport':
-        specifier: workspace:*
-        version: link:../core-transport
-      '@sealink/data-postgrest':
-        specifier: workspace:*
-        version: link:../data-postgrest
-      '@sealink/runtime-session':
-        specifier: workspace:*
-        version: link:../runtime-session
-    devDependencies:
-      typescript:
-        specifier: ^5.3.0
-        version: 5.9.3
-
-  packages/runtime-session:
-    dependencies:
-      '@sealink/core-common':
-        specifier: workspace:*
-        version: link:../core-common
+  packages/conversation:
     devDependencies:
       typescript:
         specifier: ^5.3.0
