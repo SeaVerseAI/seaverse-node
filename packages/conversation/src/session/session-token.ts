@@ -6,7 +6,7 @@ import { AuthError } from '../errors/AuthError.js';
 export interface UrlSessionTokenConfig {
   /**
    * Auth service base URL
-   * @default "https://auth.sg.seaverse.dev"
+   * @default "https://auth.seaverse.ai"
    */
   authBaseUrl?: string;
 
@@ -71,7 +71,7 @@ export function clearUrlSessionTokenCache(): void {
  * @example
  * const token = await getUrlSessionToken({
  *   accessToken: 'user-access-token',
- *   authBaseUrl: 'https://auth.sg.seaverse.dev'
+ *   authBaseUrl: 'https://auth.seaverse.ai'
  * });
  */
 export async function getUrlSessionToken(
@@ -119,7 +119,7 @@ async function fetchUrlSessionToken(
   config: UrlSessionTokenConfig
 ): Promise<string | null> {
   const {
-    authBaseUrl = 'https://auth.sg.seaverse.dev',
+    authBaseUrl = 'https://auth.seaverse.ai',
     accessToken,
     fetch: customFetch = globalThis.fetch,
     timeoutMs = 10000,

@@ -43,7 +43,7 @@ export interface ListAppsWithConversationsConfig {
 
   /**
    * Auth service base URL
-   * @default "https://auth.sg.seaverse.dev"
+   * @default "https://auth.seaverse.ai"
    */
   authBaseUrl?: string;
 }

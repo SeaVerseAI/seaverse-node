@@ -517,7 +517,7 @@ console.log('Deleted:', newConversation.conversation_id);
 The SDK automatically selects the corresponding service endpoint based on the `environment` parameter:
 
 - `'dev'`: Development environment (https://postgrest.sg.seaverse.dev)
-- `'prod'`: Production environment (https://db.seaverse.ai)
+- `'prod'`: Production environment (https://sandbox-api.seaverse.ai)
 
 ## License
 

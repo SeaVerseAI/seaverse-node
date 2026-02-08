@@ -16,8 +16,8 @@ const ENV_CONFIGS: Record<'dev' | 'prod', EnvironmentUrls> = {
     auth: 'https://auth.sg.seaverse.dev',
   },
   prod: {
-    postgrest: 'https://db.seaverse.ai',
-    auth: 'https://auth.sg.seaverse.dev',
+    postgrest: 'https://sandbox-api.seaverse.ai',
+    auth: 'https://auth.seaverse.ai',
   },
 };
 

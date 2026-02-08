@@ -54,7 +54,7 @@ import { listAppsWithConversations } from '@sealink/runtime-conversations';
 
 // 1. 创建 HTTP 客户端
 const http = createHttpClient({
-  baseUrl: 'https://db.seaverse.ai',
+  baseUrl: 'https://sandbox-api.seaverse.ai',
   getAuthToken: () => localStorage.getItem('token'),
 });
 
@@ -74,7 +74,7 @@ const result = await listAppsWithConversations({
   db,
   getUrlSessionToken,
   accessToken: 'user-token',
-  authBaseUrl: 'https://auth.sg.seaverse.dev',
+  authBaseUrl: 'https://auth.seaverse.ai',
 });
 
 console.log('URL Session Token:', result.url_session_token);
